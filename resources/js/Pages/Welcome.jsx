@@ -11,7 +11,6 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
             ?.classList.add('!flex-row');
         document.getElementById('background')?.classList.add('!hidden');
     };
-ssss
     return (
         <>
             <Head title="Welcome" />
