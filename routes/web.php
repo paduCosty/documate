@@ -42,8 +42,25 @@ Route::get('tools/compress-pdf', function () {
 Route::get('tools/pdf-to-jpg', function () {
     return Inertia::render('tools/pdf-to-jpg/page');
 });
+
 Route::get('tools/split-pdf', function () {
     return Inertia::render('tools/split-pdf/page');
+});
+
+Route::get('legal/terms', function () {
+    return Inertia::render('legal/terms/page');
+});
+
+Route::get('legal/privacy', function () {
+    return Inertia::render('legal/privacy/page');
+});
+
+Route::get('legal/cookies', function () {
+    return Inertia::render('legal/cookies/page');
+});
+
+Route::get('legal/refund', function () {
+    return Inertia::render('legal/refund/page');
 });
 
 

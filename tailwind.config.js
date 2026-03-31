@@ -1,53 +1,26 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
-import forms from '@tailwindcss/forms';
-
-/** @type {import('tailwindcss').Config} */
-export default {
-    content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
-        './resources/js/**/*.jsx',
-    ],
-
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-            },
-            colors: {
-                border: 'var(--border)',
-                ring: 'var(--ring)',
-                background: 'var(--background)',
-                foreground: 'var(--foreground)',
-                card: 'var(--card)',
-                'card-foreground': 'var(--card-foreground)',
-                popover: 'var(--popover)',
-                'popover-foreground': 'var(--popover-foreground)',
-                primary: 'var(--primary)',
-                'primary-foreground': 'var(--primary-foreground)',
-                secondary: 'var(--secondary)',
-                'secondary-foreground': 'var(--secondary-foreground)',
-                muted: 'var(--muted)',
-                'muted-foreground': 'var(--muted-foreground)',
-                accent: 'var(--accent)',
-                'accent-foreground': 'var(--accent-foreground)',
-                destructive: 'var(--destructive)',
-                input: 'var(--input)',
-            },
-        },
+// tailwind.config.js
+module.exports = {
+  content: [
+    './resources/js/**/*.{js,jsx,ts,tsx}',
+    './resources/views/**/*.blade.php',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        border: 'var(--border)',
+        ring: 'var(--ring)',
+      },
     },
-
-   plugins: [
-    function ({ addUtilities }) {
+  },
+  plugins: [
+    require('tailwindcss-animate'),
+    function({ addUtilities }) {
       addUtilities({
+        // definește clasa custom outline-ring
         '.outline-ring': {
           outline: '2px solid var(--ring)',
-          'outline-offset': '2px',
         },
-        '.border-border': {
-          border: '1px solid var(--border)',
-        },
+        
       });
     },
   ],
