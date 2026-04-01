@@ -1,8 +1,6 @@
 "use client"
 
-import { Link } from '@inertiajs/react';
-
-import { usePathname } from "next/navigation"
+import { Link, usePage, router } from '@inertiajs/react';
 import { LayoutDashboard, FolderOpen, BarChart2, CreditCard, Settings, LogOut } from "lucide-react"
 import { Logo } from "./logo"
 import { cn } from "@/lib/utils"
@@ -33,8 +31,10 @@ const planBadgeStyles = {
   business: "bg-amber-500 text-black",
 }
 
-export function AppLayout({ children, user = { name: "Alex Johnson", email: "alex@example.com", plan: "free" } }: AppLayoutProps) {
-  const pathname = usePathname()
+export function AppLayout({ children }: AppLayoutProps) {
+  const { url, props } = usePage<{ auth?: { user?: { name: string; email: string; plan: "free" | "pro" | "business" } } }>()
+  const user = props?.auth?.user
+  const pathname = url.pathname
 
   return (
     <div className="flex min-h-screen bg-zinc-950">
@@ -120,7 +120,10 @@ export function AppLayout({ children, user = { name: "Alex Johnson", email: "ale
                 </div>
                 <span className="text-xs text-zinc-500">{user.email}</span>
               </div>
-              <button className="p-1 text-zinc-600 transition-colors hover:text-white">
+              <button 
+                onClick={() => router.post('/logout')}
+                className="p-1 text-zinc-600 transition-colors hover:text-white"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>

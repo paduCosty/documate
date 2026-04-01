@@ -8,6 +8,7 @@ import { DocumateBadge } from "@/components/documate/documate-badge"
 import { DocumateButton } from "@/components/documate/documate-button"
 import { DocumateInput } from "@/components/documate/documate-input"
 import { Switch } from "@/components/ui/switch"
+import { useForm, usePage } from "@inertiajs/react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,12 +37,23 @@ const notifications = [
 ]
 
 export default function SettingsPage() {
+  const { auth } = usePage().props as any
+  const user = auth?.user
+
   const [activeTab, setActiveTab] = useState("Profile")
   const [passwordStrength, setPasswordStrength] = useState(0)
   const [deleteConfirmation, setDeleteConfirmation] = useState("")
-  const [notificationSettings, setNotificationSettings] = useState(
-    notifications.reduce((acc, n) => ({ ...acc, [n.id]: n.enabled }), {} as Record<string, boolean>)
-  )
+
+  const profileForm = useForm({
+    name: user?.name || "",
+    email: user?.email || "",
+  })
+
+  const passwordForm = useForm({
+    current_password: "",
+    password: "",
+    password_confirmation: "",
+  })
 
   const handlePasswordChange = (value: string) => {
     let strength = 0
@@ -50,6 +62,30 @@ export default function SettingsPage() {
     if (/[0-9]/.test(value)) strength++
     if (/[^A-Za-z0-9]/.test(value)) strength++
     setPasswordStrength(strength)
+  }
+
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    profileForm.patch('/profile', {
+      onSuccess: () => {
+        // Success message could be handled here
+      }
+    })
+  }
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    passwordForm.put('/password', {
+      onSuccess: () => {
+        passwordForm.reset()
+        setPasswordStrength(0)
+      }
+    })
+  }
+
+  const handleDeleteAccount = () => {
+    // This would need a form submission to /profile with DELETE method
+    // For now, we'll keep the UI as is
   }
 
   const strengthLabels = ["Weak", "Fair", "Good", "Strong"]
@@ -85,7 +121,7 @@ export default function SettingsPage() {
             {/* Avatar Section */}
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-zinc-800 text-2xl font-bold text-white">
-                AJ
+                {user?.name?.split(" ").map((n: string) => n[0]).join("") || "U"}
               </div>
               <DocumateButton variant="ghost" size="sm">
                 <Camera className="h-4 w-4" />
@@ -94,16 +130,28 @@ export default function SettingsPage() {
             </div>
 
             {/* Profile Form */}
-            <div className="mt-8 max-w-md space-y-5">
-              <DocumateInput label="Full name" defaultValue="Alex Johnson" />
+            <form onSubmit={handleProfileSubmit} className="mt-8 max-w-md space-y-5">
+              <DocumateInput
+                label="Full name"
+                value={profileForm.data.name}
+                onChange={(e) => profileForm.setData('name', e.target.value)}
+                error={profileForm.errors.name}
+              />
               <div>
-                <DocumateInput label="Email" defaultValue="alex@example.com" />
+                <DocumateInput
+                  label="Email"
+                  value={profileForm.data.email}
+                  onChange={(e) => profileForm.setData('email', e.target.value)}
+                  error={profileForm.errors.email}
+                />
                 <div className="mt-1.5 flex items-center gap-2">
                   <DocumateBadge variant="success">Verified</DocumateBadge>
                 </div>
               </div>
-              <DocumateButton>Save changes</DocumateButton>
-            </div>
+              <DocumateButton disabled={profileForm.processing}>
+                {profileForm.processing ? "Saving..." : "Save changes"}
+              </DocumateButton>
+            </form>
           </div>
         )}
 
@@ -113,13 +161,24 @@ export default function SettingsPage() {
             {/* Change Password */}
             <div className="max-w-md">
               <h3 className="text-lg font-semibold text-white">Change password</h3>
-              <div className="mt-6 space-y-4">
-                <DocumateInput label="Current password" type="password" />
+              <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-4">
+                <DocumateInput
+                  label="Current password"
+                  type="password"
+                  value={passwordForm.data.current_password}
+                  onChange={(e) => passwordForm.setData('current_password', e.target.value)}
+                  error={passwordForm.errors.current_password}
+                />
                 <div>
                   <DocumateInput
                     label="New password"
                     type="password"
-                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    value={passwordForm.data.password}
+                    onChange={(e) => {
+                      passwordForm.setData('password', e.target.value)
+                      handlePasswordChange(e.target.value)
+                    }}
+                    error={passwordForm.errors.password}
                   />
                   {/* Password Strength Bar */}
                   <div className="mt-2 flex gap-1">
@@ -136,9 +195,17 @@ export default function SettingsPage() {
                     <p className="mt-1 text-xs text-zinc-500">{strengthLabels[passwordStrength - 1]}</p>
                   )}
                 </div>
-                <DocumateInput label="Confirm password" type="password" />
-                <DocumateButton>Update password</DocumateButton>
-              </div>
+                <DocumateInput
+                  label="Confirm password"
+                  type="password"
+                  value={passwordForm.data.password_confirmation}
+                  onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
+                  error={passwordForm.errors.password_confirmation}
+                />
+                <DocumateButton disabled={passwordForm.processing}>
+                  {passwordForm.processing ? "Updating..." : "Update password"}
+                </DocumateButton>
+              </form>
             </div>
 
             {/* Active Sessions */}
@@ -221,24 +288,50 @@ export default function SettingsPage() {
                         Type <span className="font-mono text-red-400">DELETE</span> to confirm.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <input
-                      type="text"
-                      value={deleteConfirmation}
-                      onChange={(e) => setDeleteConfirmation(e.target.value)}
-                      placeholder="Type DELETE to confirm"
-                      className="mt-4 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-red-900 focus:outline-none"
-                    />
-                    <AlertDialogFooter className="mt-4">
-                      <AlertDialogCancel className="border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-white">
-                        Keep my plan
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        disabled={deleteConfirmation !== "DELETE"}
-                        className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
-                      >
-                        Delete permanently
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        if (deleteConfirmation === "DELETE") {
+                          // Use Inertia to submit delete request
+                          const form = document.createElement('form')
+                          form.method = 'POST'
+                          form.action = '/profile'
+                          const methodField = document.createElement('input')
+                          methodField.type = 'hidden'
+                          methodField.name = '_method'
+                          methodField.value = 'DELETE'
+                          const passwordField = document.createElement('input')
+                          passwordField.type = 'hidden'
+                          passwordField.name = 'password'
+                          passwordField.value = '' // Would need to add password confirmation
+                          form.appendChild(methodField)
+                          form.appendChild(passwordField)
+                          document.body.appendChild(form)
+                          form.submit()
+                        }
+                      }}
+                      className="mt-4"
+                    >
+                      <input
+                        type="text"
+                        value={deleteConfirmation}
+                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        placeholder="Type DELETE to confirm"
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-red-900 focus:outline-none"
+                      />
+                      <AlertDialogFooter className="mt-4">
+                        <AlertDialogCancel className="border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-white">
+                          Keep my plan
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          type="submit"
+                          disabled={deleteConfirmation !== "DELETE"}
+                          className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+                        >
+                          Delete permanently
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </form>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>

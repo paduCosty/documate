@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Link } from "@inertiajs/react"
+import { useState, FormEvent } from "react"
+import { Link, useForm } from '@inertiajs/react';
 import { Eye, EyeOff } from "lucide-react"
 import { GuestLayout } from "@/components/documate/guest-layout"
 import { DocumateButton } from "@/components/documate/documate-button"
@@ -12,13 +12,28 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(0)
 
+  const { data, setData, post, processing, errors } = useForm({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    terms: false,
+  })
+
   const handlePasswordChange = (value: string) => {
+    setData('password', value)
     let strength = 0
     if (value.length >= 8) strength++
     if (/[A-Z]/.test(value)) strength++
     if (/[0-9]/.test(value)) strength++
     if (/[^A-Za-z0-9]/.test(value)) strength++
     setPasswordStrength(strength)
+  }
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    post('/register')
   }
 
   const strengthColors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500"]
@@ -29,16 +44,37 @@ export default function RegisterPage() {
         <h2 className="text-xl font-semibold text-white">Create your account</h2>
         <p className="mt-1 text-sm text-zinc-500">Start processing PDFs for free.</p>
 
-        <form className="mt-8 space-y-4">
-          <DocumateInput label="Full name" placeholder="John Doe" />
-          <DocumateInput label="Email" type="email" placeholder="you@example.com" />
+        <form onSubmit={submit} className="mt-8 space-y-4">
+          <DocumateInput
+            label="Full name"
+            placeholder="John Doe"
+            value={data.name}
+            onChange={(e) => setData('name', e.target.value)}
+            error={errors.name}
+            required
+            autoComplete="name"
+          />
+          <DocumateInput
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={data.email}
+            onChange={(e) => setData('email', e.target.value)}
+            error={errors.email}
+            required
+            autoComplete="username"
+          />
           
           <div className="relative">
             <DocumateInput
               label="Password"
               type={showPassword ? "text" : "password"}
               placeholder="Create a password"
+              value={data.password}
               onChange={(e) => handlePasswordChange(e.target.value)}
+              error={errors.password}
+              required
+              autoComplete="new-password"
             />
             <button
               type="button"
@@ -60,10 +96,24 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <DocumateInput label="Confirm password" type="password" placeholder="Confirm your password" />
+          <DocumateInput
+            label="Confirm password"
+            type="password"
+            placeholder="Confirm your password"
+            value={data.password_confirmation}
+            onChange={(e) => setData('password_confirmation', e.target.value)}
+            error={errors.password_confirmation}
+            required
+            autoComplete="new-password"
+          />
 
           <div className="flex items-start gap-2">
-            <Checkbox id="terms" className="mt-0.5 border-zinc-700 data-[state=checked]:bg-white data-[state=checked]:text-black" />
+            <Checkbox
+              id="terms"
+              checked={data.terms}
+              onCheckedChange={(checked) => setData('terms', Boolean(checked))}
+              className="mt-0.5 border-zinc-700 data-[state=checked]:bg-white data-[state=checked]:text-black"
+            />
             <label htmlFor="terms" className="text-sm text-zinc-500">
               I agree to the{" "}
               <Link href="/legal/terms" className="text-white hover:underline">Terms of Service</Link>
@@ -72,7 +122,9 @@ export default function RegisterPage() {
             </label>
           </div>
 
-          <DocumateButton className="mt-6 w-full">Create account</DocumateButton>
+          <DocumateButton className="mt-6 w-full" disabled={processing}>
+            {processing ? 'Creating account…' : 'Create account'}
+          </DocumateButton>
         </form>
 
         {/* Divider */}

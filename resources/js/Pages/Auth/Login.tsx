@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Link } from '@inertiajs/react';
+import { useState, FormEvent } from "react"
+import { Link, useForm } from '@inertiajs/react';
 
 import { Eye, EyeOff } from "lucide-react"
 import { GuestLayout } from "@/components/documate/guest-layout"
@@ -12,20 +12,46 @@ import { Checkbox } from "@/components/ui/checkbox"
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 
+  const { data, setData, post, processing, errors } = useForm({
+    email: "",
+    password: "",
+    remember: false,
+  })
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    post('/login')
+  }
+
   return (
     <GuestLayout>
       <div className="w-full max-w-[400px] rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-[0_0_0_1px_#3f3f46,0_16px_48px_rgba(0,0,0,0.6)]">
         <h2 className="text-xl font-semibold text-white">Welcome back</h2>
         <p className="mt-1 text-sm text-zinc-500">Sign in to your account.</p>
 
-        <form className="mt-8 space-y-4">
-          <DocumateInput label="Email" type="email" placeholder="you@example.com" />
-          
+        <form onSubmit={submit} className="mt-8 space-y-4">
+          <DocumateInput
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={data.email}
+            onChange={(e) => setData('email', e.target.value)}
+            error={errors.email}
+            required
+            autoComplete="username"
+          />
+
           <div className="relative">
             <DocumateInput
               label="Password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
+              value={data.password}
+              onChange={(e) => setData('password', e.target.value)}
+              error={errors.password}
+              required
+              autoComplete="current-password"
             />
             <button
               type="button"
@@ -38,7 +64,12 @@ export default function LoginPage() {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox id="remember" className="border-zinc-700 data-[state=checked]:bg-white data-[state=checked]:text-black" />
+              <Checkbox
+                id="remember"
+                checked={data.remember}
+                onCheckedChange={(checked) => setData('remember', Boolean(checked))}
+                className="border-zinc-700 data-[state=checked]:bg-white data-[state=checked]:text-black"
+              />
               <label htmlFor="remember" className="text-sm text-zinc-400">Remember me</label>
             </div>
             <Link href="/forgot-password" className="text-sm text-zinc-500 transition-colors hover:text-white">
@@ -46,7 +77,9 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <DocumateButton className="mt-6 w-full">Sign in</DocumateButton>
+          <DocumateButton className="mt-6 w-full" disabled={processing}>
+            {processing ? 'Signing in…' : 'Sign in'}
+          </DocumateButton>
         </form>
 
         {/* Divider */}

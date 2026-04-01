@@ -1,25 +1,29 @@
 "use client"
 
 import { useState } from "react"
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
 import { ChevronDown, Menu, X, GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image } from "lucide-react"
 import { Logo } from "./logo"
 import { cn } from "@/lib/utils"
 
 const tools = [
-  { name: "Merge PDF", description: "Combine multiple PDFs into one", icon: GitMerge, href: "/tools/merge-pdf" },
-  { name: "Compress PDF", description: "Reduce PDF file size", icon: Minimize2, href: "/tools/compress-pdf" },
-  { name: "Word to PDF", description: "Convert .doc/.docx to PDF", icon: FileText, href: "/tools/word-to-pdf" },
-  { name: "Excel to PDF", description: "Convert spreadsheets to PDF", icon: Table, href: "/tools/excel-to-pdf" },
-  { name: "PPT to PDF", description: "Convert presentations to PDF", icon: Presentation, href: "/tools/ppt-to-pdf" },
-  { name: "Split PDF", description: "Extract pages from PDF", icon: Scissors, href: "/tools/split-pdf" },
-  { name: "PDF to JPG", description: "Convert PDF to images", icon: Image, href: "/tools/pdf-to-jpg" },
+  { name: "Merge PDF", description: "Combine multiple PDFs into one", icon: GitMerge, href: route('tools.merge-pdf') },
+  { name: "Compress PDF", description: "Reduce PDF file size", icon: Minimize2, href: route('tools.compress-pdf') },
+  { name: "Word to PDF", description: "Convert .doc/.docx to PDF", icon: FileText, href: route('tools.word-to-pdf') },
+  { name: "Excel to PDF", description: "Convert spreadsheets to PDF", icon: Table, href: route('tools.excel-to-pdf') },
+  { name: "PPT to PDF", description: "Convert presentations to PDF", icon: Presentation, href: route('tools.ppt-to-pdf') },
+  { name: "Split PDF", description: "Extract pages from PDF", icon: Scissors, href: route('tools.split-pdf') },
+  { name: "PDF to JPG", description: "Convert PDF to images", icon: Image, href: route('tools.pdf-to-jpg') },
 ]
 
 export function Navbar() {
   const [isToolsOpen, setIsToolsOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const { props } = usePage<{ auth?: { user?: { name: string; email: string; plan: "free" | "pro" | "business" } } }>()
+  const user = props?.auth?.user
 
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-[#09090b]/80 backdrop-blur-xl">
@@ -72,15 +76,26 @@ export function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden items-center gap-4 md:flex">
-          <Link href="/login" className="text-sm text-zinc-400 transition-colors duration-150 hover:text-white">
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.3)] transition-colors hover:bg-zinc-100"
-          >
-            Get started
-          </Link>
+          {user ? (
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.3)] transition-colors hover:bg-zinc-100"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm text-zinc-400 transition-colors duration-150 hover:text-white">
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.3)] transition-colors hover:bg-zinc-100"
+              >
+                Get started
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -127,20 +142,32 @@ export function Navbar() {
               </Link>
             </div>
             <div className="space-y-2 border-t border-zinc-800 pt-4">
-              <Link
-                href="/login"
-                className="block rounded-xl p-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Log in
-              </Link>
-              <Link
-                href="/register"
-                className="block rounded-xl bg-white p-2 text-center text-sm font-medium text-black transition-colors hover:bg-zinc-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Get started
-              </Link>
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  className="block rounded-xl bg-white p-2 text-center text-sm font-medium text-black transition-colors hover:bg-zinc-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="block rounded-xl p-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="block rounded-xl bg-white p-2 text-center text-sm font-medium text-black transition-colors hover:bg-zinc-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Get started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

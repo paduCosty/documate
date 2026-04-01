@@ -20,13 +20,13 @@ const recentFiles = [
   { id: 5, name: "brochure-pages.zip", tool: "PDF to JPG", toolColor: "bg-pink-500/20 text-pink-400", size: "8.2 MB", date: "2 days ago", expires: "Expired", isExpired: true },
 ]
 
-export default function DashboardPage() {
+export default function DashboardPage({ user }) {
   return (
     <AppLayout>
       <div className="px-8 py-10">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-white">Good morning, Alex</h2>
+          <h2 className="text-2xl font-semibold text-white">Good morning, {user.name}</h2>
           <div className="flex items-center gap-3">
             <DocumateBadge>Free</DocumateBadge>
             <Link href="/dashboard/billing">
