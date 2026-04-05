@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Billable;
 
     /**
      * Get the attributes that should be cast.
@@ -27,6 +28,53 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+        ];
+    }
+
+    public function files()
+    {
+        return $this->hasMany(UserFile::class);
+    }
+
+    public function hasActivePaidPlan(): bool
+    {
+        $subscription = $this->subscription('default');
+
+        return $subscription
+            && $subscription->active()
+            && $subscription->stripe_price !== null;
+    }
+
+    public function todayUsage(): DailyUsage
+    {
+        return DailyUsage::firstOrCreate([
+            'user_id' => $this->id,
+            'date'    => now()->toDateString(),
+        ]);
+    }
+
+    public function dailyUsages()
+    {
+        return $this->hasMany(DailyUsage::class);
+    }
+
+    public function currentPlanLimits(): array
+    {
+        if (!$this->hasActivePaidPlan()) {
+            return [
+                'operations_per_day' => 3,        // max files per day
+                'total_bytes_per_day' => 10 * 1024 * 1024, // 10 MB per day
+                'max_file_size_mb'   => 10,
+                'plan'               => 'free'
+            ];
+        }
+
+
+        // Pro 
+        return [
+            'operations_per_day' => 999999,
+            'max_file_size_mb'   => 100,
+            'plan'               => 'pro'
         ];
     }
 }

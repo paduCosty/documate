@@ -1,16 +1,17 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\Tools\MergePdfController;
+use App\Http\Controllers\Tools\ToolStatusController;
+use App\Http\Controllers\UserFileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 
 Route::get('/contact', function () {
     return Inertia::render('contact/page');
-});
-Route::get('/pricing', function () {
-    return Inertia::render('pricing/page');
 });
 
 Route::get('/faq', function () {
@@ -20,6 +21,31 @@ Route::get('/faq', function () {
 Route::get('/', function () {
     return Inertia::render('page');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::post('/tools/merge-pdf', [MergePdfController::class, 'process'])
+        ->name('tools.merge-pdf.process');
+});
+
+
+Route::middleware('auth')->group(function () {
+   // Status page - Inertia render (IMPORTANT)
+    Route::get('/status/{uuid}', [ToolStatusController::class, 'show'])
+         ->name('tools.status');
+
+    // Polling endpoint - JSON allowed
+    Route::get('/status/{uuid}/poll', [ToolStatusController::class, 'status'])
+         ->name('tools.status.poll');
+
+    // Download
+    Route::get('/tools/download/{uuid}', [ToolStatusController::class, 'download'])
+         ->name('tools.download');
+
+    // Merge PDF route
+    Route::post('/merge-pdf', [MergePdfController::class, 'process'])
+         ->name('tools.merge-pdf.process');
+});
+
 
 Route::prefix('tools')->group(function () {
     Route::get('/', function () {
@@ -80,6 +106,8 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
             'user' => auth()->user()
         ]);
     })->name('index');
+    Route::get('/', [DashboardController::class, 'index'])->name('index');
+
 
     Route::get('/analytics', function () {
         return Inertia::render('dashboard/analytics/page');
@@ -109,6 +137,28 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
         return Inertia::render('dashboard/billing/page');
     })->name('billing');
 });
+
+Route::get('/pricing', [SubscriptionController::class, 'index'])->name('pricing');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard/billing', [SubscriptionController::class, 'billing'])->name('billing');
+
+    Route::post('/subscription/checkout/{plan}', [SubscriptionController::class, 'checkout'])
+        ->name('subscription.checkout');
+
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('subscription.cancel');
+
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('billing.success');
+    Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('billing.cancel');
+
+    Route::post('/files/upload', [UserFileController::class, 'upload'])->name('files.upload');
+    Route::get('/files/{fileId}/download', [UserFileController::class, 'download'])->name('files.download');
+});
+
+
+
+
+Route::get('/checkout/{plan}', [SubscriptionController::class, 'showCheckout'])->name('checkout.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

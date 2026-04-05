@@ -1,51 +1,53 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react"
-import { Link } from '@inertiajs/react';
+import { useState, useCallback } from "react";
+import { router, Link } from "@inertiajs/react";
 
-import { Upload, X, Zap, GripVertical, FileText, CheckCircle2, Download, Lock } from "lucide-react"
-import { Navbar } from "./navbar"
-import { Footer } from "./footer"
-import { PageHeader } from "./page-header"
-import { DocumateButton } from "./documate-button"
-import { DocumateCard } from "./documate-card"
-import { cn } from "@/lib/utils"
+import { Upload, X, Zap, GripVertical, FileText, CheckCircle2, Download, Lock } from "lucide-react";
+import { Navbar } from "./navbar";
+import { Footer } from "./footer";
+import { PageHeader } from "./page-header";
+import { DocumateButton } from "./documate-button";
+import { DocumateCard } from "./documate-card";
+import { cn } from "@/lib/utils";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
 
 interface FAQ {
-  question: string
-  answer: string
+  question: string;
+  answer: string;
 }
 
 interface Step {
-  title: string
-  description: string
+  title: string;
+  description: string;
 }
 
 interface ToolLayoutProps {
-  toolName: string
-  toolDescription: string
-  acceptedFormats: string[]
-  maxFiles: number
-  maxSizeMB: number
-  faqs: FAQ[]
-  steps: Step[]
-  actionButtonText: string
-  outputFileName?: string
+  toolName: string;
+  toolDescription: string;
+  acceptedFormats: string[];
+  maxFiles: number;
+  maxSizeMB: number;
+  faqs: FAQ[];
+  steps: Step[];
+  actionButtonText: string;
+  outputFileName?: string;
+  toolRoute: string;           // Required: backend route (e.g. "/tools/merge-pdf")
 }
 
 interface UploadedFile {
-  id: string
-  name: string
-  size: number
+  id: string;
+  name: string;
+  size: number;
+  file: File;                  // Real File object
 }
 
-type ToolState = "idle" | "processing" | "success"
+type ToolState = "idle" | "processing" | "success";
 
 export function ToolLayout({
   toolName,
@@ -57,79 +59,126 @@ export function ToolLayout({
   steps,
   actionButtonText,
   outputFileName = "output.pdf",
+  toolRoute,
 }: ToolLayoutProps) {
-  const [files, setFiles] = useState<UploadedFile[]>([])
-  const [isDragging, setIsDragging] = useState(false)
-  const [showBanner, setShowBanner] = useState(true)
-  const [toolState, setToolState] = useState<ToolState>("idle")
-  const [progress, setProgress] = useState(0)
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+  const [toolState, setToolState] = useState<ToolState>("idle");
+  const [progress, setProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [draggedFileId, setDraggedFileId] = useState<string | null>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const droppedFiles = Array.from(e.dataTransfer.files).slice(0, maxFiles)
+    e.preventDefault();
+    setIsDragging(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files).slice(0, maxFiles);
     const newFiles: UploadedFile[] = droppedFiles.map((file) => ({
       id: Math.random().toString(36).substring(7),
       name: file.name,
       size: file.size,
-    }))
-    setFiles((prev) => [...prev, ...newFiles].slice(0, maxFiles))
-  }, [maxFiles])
+      file,
+    }));
+
+    setFiles((prev) => [...prev, ...newFiles].slice(0, maxFiles));
+  }, [maxFiles]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files).slice(0, maxFiles)
+      const selectedFiles = Array.from(e.target.files).slice(0, maxFiles);
       const newFiles: UploadedFile[] = selectedFiles.map((file) => ({
         id: Math.random().toString(36).substring(7),
         name: file.name,
         size: file.size,
-      }))
-      setFiles((prev) => [...prev, ...newFiles].slice(0, maxFiles))
+        file,
+      }));
+
+      setFiles((prev) => [...prev, ...newFiles].slice(0, maxFiles));
     }
-  }, [maxFiles])
+  }, [maxFiles]);
 
   const removeFile = useCallback((id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id))
-  }, [])
+    setFiles((prev) => prev.filter((f) => f.id !== id));
+  }, []);
+
+  const handleReorder = useCallback((targetId: string) => {
+    if (!draggedFileId || draggedFileId === targetId) {
+      setDraggedFileId(null);
+      return;
+    }
+
+    setFiles((prev) => {
+      const fromIndex = prev.findIndex((f) => f.id === draggedFileId);
+      const toIndex = prev.findIndex((f) => f.id === targetId);
+      if (fromIndex === -1 || toIndex === -1) return prev;
+
+      const newFiles = [...prev];
+      const [moved] = newFiles.splice(fromIndex, 1);
+      newFiles.splice(toIndex, 0, moved);
+      return newFiles;
+    });
+
+    setDraggedFileId(null);
+  }, [draggedFileId]);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
-  const totalSize = files.reduce((acc, f) => acc + f.size, 0)
+  const totalSize = files.reduce((acc, f) => acc + f.size, 0);
 
+  // Real file processing using Inertia
   const handleProcess = useCallback(() => {
-    setToolState("processing")
-    setProgress(0)
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setToolState("success")
-          return 100
+    if (files.length === 0) return;
+
+    setToolState("processing");
+    setProgress(0);
+    setErrorMessage(null);
+
+    const formData = new FormData();
+    formData.append("operation_type", toolName.toLowerCase().replace(/\s+/g, "-"));
+
+    files.forEach((item) => {
+      formData.append("files[]", item.file);
+    });
+
+    router.post(toolRoute, formData, {
+      forceFormData: true,
+      onProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          setProgress(percent);
         }
-        return prev + 10
-      })
-    }, 200)
-  }, [])
+      },
+      onSuccess: () => {
+        // Inertia will handle redirect to status page from backend
+      },
+      onError: (errors) => {
+        setToolState("idle");
+        setErrorMessage(errors.message || "An error occurred while processing your files.");
+      },
+    });
+  }, [files, toolRoute, toolName]);
 
   const handleReset = useCallback(() => {
-    setFiles([])
-    setToolState("idle")
-    setProgress(0)
-  }, [])
+    setFiles([]);
+    setToolState("idle");
+    setProgress(0);
+    setErrorMessage(null);
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -154,7 +203,7 @@ export function ToolLayout({
               <span className="text-sm text-zinc-400">
                 Using 1 of 3 free daily operations.{" "}
                 <Link href="/register" className="text-white underline underline-offset-2 hover:no-underline">
-                  Create a free account for 10/day &rarr;
+                  Create a free account for 10/day →
                 </Link>
               </span>
             </div>
@@ -164,6 +213,12 @@ export function ToolLayout({
             >
               <X className="h-4 w-4" />
             </button>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="mt-4 rounded-xl bg-red-950 border border-red-900 p-4 text-red-400">
+            {errorMessage}
           </div>
         )}
 
@@ -199,12 +254,16 @@ export function ToolLayout({
               </p>
             </label>
 
-            {/* File List */}
+            {/* File List with Reorder Support */}
             {files.length > 0 && (
               <div className="mt-3 space-y-2">
                 {files.map((file) => (
                   <div
                     key={file.id}
+                    draggable
+                    onDragStart={() => setDraggedFileId(file.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleReorder(file.id)}
                     className="flex animate-in slide-in-from-bottom-2 items-center gap-3 rounded-xl bg-zinc-800 p-3 duration-200"
                   >
                     <GripVertical className="h-4 w-4 cursor-grab text-zinc-600" />
@@ -258,19 +317,13 @@ export function ToolLayout({
           </DocumateCard>
         )}
 
-        {/* Success State */}
+        {/* Success State - This will be rarely shown because we redirect to status page */}
         {toolState === "success" && (
           <DocumateCard className="mt-6 animate-in fade-in duration-300">
             <div className="mx-auto w-fit rounded-full bg-[rgba(34,197,94,0.10)] p-3">
               <CheckCircle2 className="h-6 w-6 text-[#22c55e]" />
             </div>
             <p className="mt-4 text-center font-semibold text-white">{outputFileName}</p>
-            <p className="mt-1 text-center text-sm text-zinc-500">
-              2.4 MB &rarr; 1.1 MB{" "}
-              <span className="ml-1 inline-flex items-center rounded-full bg-[rgba(34,197,94,0.10)] px-2 py-0.5 text-xs text-[#22c55e]">
-                54% smaller
-              </span>
-            </p>
             <DocumateButton className="mt-6 w-full">
               <Download className="h-4 w-4" />
               Download {outputFileName}
@@ -278,16 +331,10 @@ export function ToolLayout({
             <DocumateButton variant="ghost" className="mt-2 w-full" onClick={handleReset}>
               Process more files
             </DocumateButton>
-            <div className="mt-6 border-t border-zinc-800 pt-6">
-              <div className="flex items-center justify-center gap-1 text-xs text-zinc-600">
-                <Lock className="h-3 w-3 text-zinc-700" />
-                Your file will be automatically deleted in 24 hours
-              </div>
-            </div>
           </DocumateCard>
         )}
 
-        {/* SEO Content Section */}
+        {/* SEO Content & FAQ sections remain unchanged */}
         <section className="mt-24 border-t border-zinc-800 pt-12">
           <h2 className="mb-8 text-xl font-semibold text-white">How to {toolName.toLowerCase()} online</h2>
           <div className="space-y-6">
@@ -305,7 +352,6 @@ export function ToolLayout({
           </div>
         </section>
 
-        {/* FAQ Section */}
         <section className="mt-16">
           <h3 className="mb-6 text-lg font-semibold text-white">Frequently asked questions</h3>
           <Accordion type="single" collapsible className="space-y-2">
@@ -329,5 +375,5 @@ export function ToolLayout({
 
       <Footer />
     </div>
-  )
+  );
 }
