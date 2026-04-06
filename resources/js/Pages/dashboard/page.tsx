@@ -24,15 +24,31 @@ type Stat = {
   isLink?: boolean;
 };
 
+const TOOL_CONFIG: Record<string, { label: string; color: string }> = {
+  'merge-pdf':    { label: 'Merge PDF',    color: 'bg-blue-500/20 text-blue-400' },
+  'compress-pdf': { label: 'Compress PDF', color: 'bg-green-500/20 text-green-400' },
+  'split-pdf':    { label: 'Split PDF',    color: 'bg-orange-500/20 text-orange-400' },
+  'word-to-pdf':  { label: 'Word to PDF',  color: 'bg-red-500/20 text-red-400' },
+  'excel-to-pdf': { label: 'Excel to PDF', color: 'bg-yellow-500/20 text-yellow-400' },
+  'ppt-to-pdf':   { label: 'PPT to PDF',   color: 'bg-purple-500/20 text-purple-400' },
+  'pdf-to-jpg':   { label: 'PDF to JPG',   color: 'bg-pink-500/20 text-pink-400' },
+};
+
+function getToolConfig(tool: string) {
+  const key = tool.replace(/_/g, '-');
+  return TOOL_CONFIG[key] ?? { label: tool, color: 'bg-zinc-500/20 text-zinc-400' };
+}
+
 type RecentFile = {
   id: number;
+  uuid: string;
   name: string;
   tool: string;
-  toolColor: string;
   size: string;
   date: string;
   expires: string;
   isExpired?: boolean;
+  canDownload?: boolean;
 };
 
 type Usage = {
@@ -63,7 +79,7 @@ export default function DashboardPage({
     percentage: 0,
     resets_at: "midnight UTC",
   },
-  hasActiveSubscription = false,        // default = false (Free user)
+  hasActiveSubscription = false,
 }: DashboardProps) {
 
   const getGreeting = () => {
@@ -196,37 +212,40 @@ export default function DashboardPage({
             </div>
 
             {recentFiles.length > 0 ? (
-              recentFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="grid grid-cols-[1fr_100px_80px_100px_100px_50px] gap-4 border-t border-zinc-800 px-6 py-4 transition-colors hover:bg-zinc-800/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-3.5 w-3.5 flex-shrink-0 text-red-400" />
-                    <span className="truncate text-sm text-white">
-                      {file.name.length > 50 ? `${file.name.substring(0, 40)}...` : file.name}
+              recentFiles.map((file) => {
+                const toolCfg = getToolConfig(file.tool);
+                return (
+                  <div
+                    key={file.id}
+                    className="grid grid-cols-[1fr_100px_80px_100px_100px_50px] gap-4 border-t border-zinc-800 px-6 py-4 transition-colors hover:bg-zinc-800/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-3.5 w-3.5 flex-shrink-0 text-red-400" />
+                      <span className="truncate text-sm text-white">
+                        {file.name.length > 50 ? `${file.name.substring(0, 40)}...` : file.name}
+                      </span>
+                    </div>
+                    <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs ${toolCfg.color}`}>
+                      {toolCfg.label}
                     </span>
+                    <span className="font-mono text-xs text-zinc-500">{file.size}</span>
+                    <span className="text-xs text-zinc-500">{file.date}</span>
+                    <span className={`text-xs ${file.isExpired ? "text-red-400" : "text-zinc-600"}`}>
+                      {file.expires}
+                    </span>
+                    <div>
+                      {file.canDownload && (
+                        <a
+                          href={`/tools/download/${file.uuid}`}
+                          className="rounded-lg p-1 text-zinc-600 transition-colors hover:bg-zinc-700 hover:text-white inline-flex"
+                        >
+                          <Download className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs ${file.toolColor}`}>
-                    {file.tool.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                  </span>
-                  <span className="font-mono text-xs text-zinc-500">{file.size}</span>
-                  <span className="text-xs text-zinc-500">{file.date}</span>
-                  <span className={`text-xs ${file.isExpired ? "text-red-400" : "text-zinc-600"}`}>
-                    {file.expires}
-                  </span>
-                  <div>
-                    {!file.isExpired && (
-                      <button 
-                        onClick={() => window.open(`/files/${file.id}/download`, '_blank')}
-                        className="rounded-lg p-1 text-zinc-600 transition-colors hover:bg-zinc-700 hover:text-white"
-                      >
-                        <Download className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="px-6 py-12 text-center text-zinc-500">
                 No recent files yet.

@@ -38,6 +38,7 @@ interface ToolLayoutProps {
   actionButtonText: string;
   outputFileName?: string;
   toolRoute: string;           // Required: backend route (e.g. "/tools/merge-pdf")
+  minFiles?: number;           // Minimum files required to enable action button (default: 1)
 }
 
 interface UploadedFile {
@@ -59,6 +60,7 @@ export function ToolLayout({
   steps,
   actionButtonText,
   outputFileName = "output.pdf",
+  minFiles = 1,
   toolRoute,
 }: ToolLayoutProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -288,14 +290,21 @@ export function ToolLayout({
             <div className="mt-6">
               <DocumateButton
                 className="w-full py-3 text-base"
-                disabled={files.length === 0}
+                disabled={files.length < minFiles}
                 onClick={handleProcess}
               >
                 {actionButtonText}
               </DocumateButton>
-              <p className="mt-2 text-center text-xs text-zinc-600">
-                Estimated time: ~3 seconds
-              </p>
+              {minFiles > 1 && files.length < minFiles && (
+                <p className="mt-2 text-center text-xs text-amber-500/80">
+                  Add at least {minFiles} files to continue
+                </p>
+              )}
+              {!(minFiles > 1 && files.length < minFiles) && (
+                <p className="mt-2 text-center text-xs text-zinc-600">
+                  Estimated time: ~3 seconds
+                </p>
+              )}
             </div>
           </>
         )}

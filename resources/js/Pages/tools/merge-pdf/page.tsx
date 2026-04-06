@@ -50,6 +50,7 @@ export default function MergePdfPage() {
       steps={steps}
       actionButtonText="Merge PDFs"
       outputFileName="merged.pdf"
+      minFiles={2}
       toolRoute="/tools/merge-pdf"
     />
   )

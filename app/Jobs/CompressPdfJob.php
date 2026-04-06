@@ -39,7 +39,7 @@ class CompressPdfJob implements ShouldQueue
                 throw new \Exception("Input PDF not found: {$this->inputFilePath}");
             }
 
-            $outputFilename = "compressed-" . Str::uuid() . ".pdf";
+            $outputFilename = "compressed-" . date("Ymd-His") . ".pdf";
             $outputRelativePath = "compressed/{$this->userFile->user_id}/{$outputFilename}";
             $outputFullPath = Storage::disk("local")->path($outputRelativePath);
 

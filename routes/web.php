@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Tools\MergePdfController;
 use App\Http\Controllers\Tools\CompressPdfController;
+use App\Http\Controllers\Tools\SplitPdfController;
+use App\Http\Controllers\Tools\WordToPdfController;
 use App\Http\Controllers\Tools\ToolStatusController;
 use App\Http\Controllers\UserFileController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +26,7 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/tools/split-pdf', [SplitPdfController::class, 'process'])->name('tools.split-pdf.process');
     Route::post('/tools/compress-pdf', [CompressPdfController::class, 'process'])->name('tools.compress-pdf.process');
     Route::post('/tools/merge-pdf', [MergePdfController::class, 'process'])
         ->name('tools.merge-pdf.process');
@@ -65,6 +68,7 @@ Route::prefix('tools')->group(function () {
     Route::get('word-to-pdf', function () {
         return Inertia::render('tools/word-to-pdf/page');
     })->name('tools.word-to-pdf');
+    Route::post('word-to-pdf', [WordToPdfController::class, 'process'])->name('tools.word-to-pdf.process');
 
     Route::get('excel-to-pdf', function () {
         return Inertia::render('tools/excel-to-pdf/page');
@@ -131,8 +135,31 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
         return Inertia::render('dashboard/usage/page');
     })->name('usage');
 
-    Route::get('/files', function () {
-        return Inertia::render('dashboard/files/page');
+    Route::get('/files', function (\Illuminate\Http\Request $request) {
+        $user  = $request->user();
+        $files = $user->files()
+            ->latest()
+            ->paginate(20)
+            ->through(fn ($file) => [
+                'id'         => $file->id,
+                'uuid'       => $file->uuid,
+                'name'       => is_array($file->original_filenames)
+                                    ? implode(', ', $file->original_filenames)
+                                    : ($file->original_filenames ?? 'Unknown'),
+                'tool'       => $file->operation_type,
+                'status'     => $file->status,
+                'inputSize'  => $file->input_size_bytes,
+                'outputSize' => $file->output_size_bytes,
+                'date'       => $file->created_at->format('M d, Y'),
+                'expires'    => $file->expires_at
+                                    ? ($file->expires_at->isPast() ? 'Expired' : $file->expires_at->diffForHumans())
+                                    : 'Never',
+                'isExpired'  => $file->expires_at?->isPast() ?? false,
+                'canDownload' => $file->status === 'completed'
+                                    && !($file->expires_at?->isPast() ?? false)
+                                    && $file->output_path,
+            ]);
+        return Inertia::render('dashboard/files/page', ['files' => $files]);
     })->name('files');
 
     Route::get('/billing', function () {

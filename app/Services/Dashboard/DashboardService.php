@@ -76,14 +76,15 @@ class DashboardService
             ->limit(5)
             ->get()
             ->map(fn ($file) => [
-                'id'        => $file->id,
-                'name'      => is_array($file->original_filenames) ? implode(', ', $file->original_filenames) : $file->original_filenames,
-                'tool'      => $file->operation_type ?? 'Unknown',
-                'toolColor' => $this->getToolColor($file->operation_type),
-                'size'      => $this->formatFileSize($file->input_size_bytes),
-                'date'      => $file->created_at->diffForHumans(),
-                'expires'   => $this->getExpirationText($file),
-                'isExpired' => $file->expires_at?->isPast() ?? false,
+                'id'         => $file->id,
+                'uuid'       => $file->uuid,
+                'name'       => is_array($file->original_filenames) ? implode(', ', $file->original_filenames) : $file->original_filenames,
+                'tool'       => $file->operation_type ?? 'unknown',
+                'size'       => $this->formatFileSize($file->input_size_bytes),
+                'date'       => $file->created_at->diffForHumans(),
+                'expires'    => $this->getExpirationText($file),
+                'isExpired'  => $file->expires_at?->isPast() ?? false,
+                'canDownload' => $file->status === 'completed' && !($file->expires_at?->isPast() ?? false) && $file->output_path,
             ]);
     }
 
@@ -102,7 +103,7 @@ class DashboardService
     {
         return match ($toolName) {
             'merge-pdf' => 'bg-blue-500/20 text-blue-400',
-            'compress-pdf' => 'bg-green-500/20 text-green-4000',
+            'compress-pdf' => 'bg-green-500/20 text-green-400',
             'split-pdf' => 'bg-orange-500/20 text-orange-400',
             'word-to-pdf' => 'bg-red-500/20 text-red-400',
             'excel-to-pdf' => 'bg-yellow-500/20 text-yellow-400',

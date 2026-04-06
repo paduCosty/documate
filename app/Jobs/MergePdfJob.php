@@ -46,7 +46,7 @@ class MergePdfJob implements ShouldQueue
                 }
             }
 
-            $outputFilename = 'merged-' . Str::uuid() . '.pdf';
+            $outputFilename = 'merged-' . date('Ymd-His') . '.pdf';
             $outputRelativePath = "merged/{$this->userFile->user_id}/{$outputFilename}";
             $outputFullPath = Storage::disk('local')->path($outputRelativePath);
 

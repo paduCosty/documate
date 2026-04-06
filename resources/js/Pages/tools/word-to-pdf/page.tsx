@@ -50,6 +50,7 @@ export default function WordToPdfPage() {
       steps={steps}
       actionButtonText="Convert to PDF"
       outputFileName="document.pdf"
+      toolRoute="/tools/word-to-pdf"
     />
   )
 }
