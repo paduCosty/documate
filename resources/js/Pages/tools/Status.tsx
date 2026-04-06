@@ -10,47 +10,62 @@ import { DocumateButton } from "@/components/documate/documate-button";
 
 interface Props {
     fileUuid: string;
-    initialStatus: any;        // Statusul inițial trimis din controller
+    initialStatus: any;
 }
+
+const operationLabels: Record<string, { success: string; subtitle: (f: any) => string; download: string; again: string }> = {
+    merge_pdf: {
+        success: "Merge completed successfully!",
+        subtitle: (f) => `${f.original_filenames?.length ?? 0} files have been merged`,
+        download: "Download Merged PDF",
+        again: "Merge another set",
+    },
+    compress_pdf: {
+        success: "Compression completed successfully!",
+        subtitle: (f) => {
+            const saved = f.metadata?.saved_percent;
+            return saved ? `File size reduced by ${saved}%` : "Your PDF has been compressed";
+        },
+        download: "Download Compressed PDF",
+        again: "Compress another file",
+    },
+};
+
+const defaultLabel = {
+    success: "Processing completed!",
+    subtitle: () => "Your file is ready",
+    download: "Download File",
+    again: "Process another file",
+};
 
 export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
     const [fileStatus, setFileStatus] = useState(initialStatus);
-    const [isPolling, setIsPolling] = useState(true);
 
-    // Polling function
     const checkStatus = async () => {
         try {
-            const response = await fetch(`/tools/status/${fileUuid}/poll`);
+            const response = await fetch(`/status/${fileUuid}/poll`);
             if (!response.ok) throw new Error("Failed to fetch");
-
             const data = await response.json();
             setFileStatus(data);
-
-            // Stop polling when finished
-            if (data.status === 'completed' || data.status === 'failed') {
-                setIsPolling(false);
-            }
         } catch (error) {
             console.error("Polling error:", error);
         }
     };
 
     useEffect(() => {
-        // Start polling every 2 seconds while still processing
         const interval = setInterval(() => {
-            if (fileStatus.status === 'pending' || fileStatus.status === 'processing') {
+            if (fileStatus.status === "pending" || fileStatus.status === "processing") {
                 checkStatus();
-            } else {
-                setIsPolling(false);
             }
         }, 2000);
-
         return () => clearInterval(interval);
     }, [fileStatus.status]);
 
-    const isProcessing = fileStatus.status === 'pending' || fileStatus.status === 'processing';
-    const isCompleted = fileStatus.status === 'completed';
-    const isFailed = fileStatus.status === 'failed';
+    const isProcessing = fileStatus.status === "pending" || fileStatus.status === "processing";
+    const isCompleted = fileStatus.status === "completed";
+    const isFailed = fileStatus.status === "failed";
+
+    const label = operationLabels[fileStatus.operation_type] ?? defaultLabel;
 
     return (
         <div className="min-h-screen bg-zinc-950">
@@ -66,32 +81,24 @@ export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
                 </Link>
 
                 <DocumateCard className="p-10 text-center">
-                    {/* Processing State */}
                     {isProcessing && (
                         <>
                             <Loader2 className="mx-auto h-12 w-12 animate-spin text-white" />
-                            <h2 className="mt-6 text-2xl font-semibold text-white">Processing your files...</h2>
-                            <p className="mt-3 text-zinc-400">
-                                Merging your PDFs. This usually takes just a few seconds.
-                            </p>
+                            <h2 className="mt-6 text-2xl font-semibold text-white">Processing your file...</h2>
+                            <p className="mt-3 text-zinc-400">This usually takes just a few seconds.</p>
                             <div className="mt-8 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
                                 <div className="h-full w-3/4 animate-[loading_1.8s_infinite] rounded-full bg-white" />
                             </div>
                         </>
                     )}
 
-                    {/* Success State */}
                     {isCompleted && (
                         <>
                             <div className="mx-auto w-fit rounded-full bg-emerald-950 p-4">
                                 <CheckCircle2 className="h-12 w-12 text-emerald-400" />
                             </div>
-                            <h2 className="mt-6 text-2xl font-semibold text-white">
-                                Merge completed successfully!
-                            </h2>
-                            <p className="mt-2 text-zinc-400">
-                                {fileStatus.original_filenames.length} files have been merged
-                            </p>
+                            <h2 className="mt-6 text-2xl font-semibold text-white">{label.success}</h2>
+                            <p className="mt-2 text-zinc-400">{label.subtitle(fileStatus)}</p>
 
                             <DocumateButton
                                 className="mt-10 w-full"
@@ -99,31 +106,30 @@ export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
                                 href={`/tools/download/${fileStatus.uuid}`}
                             >
                                 <Download className="mr-2 h-4 w-4" />
-                                Download Merged PDF
+                                {label.download}
                             </DocumateButton>
 
                             <DocumateButton
                                 variant="ghost"
                                 className="mt-3 w-full"
-                                onClick={() => window.location.href = '/tools'}
+                                onClick={() => window.history.back()}
                             >
-                                Merge another set
+                                {label.again}
                             </DocumateButton>
                         </>
                     )}
 
-                    {/* Failed State */}
                     {isFailed && (
                         <>
                             <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
                             <h2 className="mt-6 text-2xl font-semibold text-white">Processing failed</h2>
                             <p className="mt-4 text-zinc-400">
-                                Something went wrong while merging your files. Please try again.
+                                Something went wrong while processing your file. Please try again.
                             </p>
                             <DocumateButton
                                 variant="outline"
                                 className="mt-8"
-                                onClick={() => window.location.href = '/tools'}
+                                onClick={() => window.history.back()}
                             >
                                 Try Again
                             </DocumateButton>

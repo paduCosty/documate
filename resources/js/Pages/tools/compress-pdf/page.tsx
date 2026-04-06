@@ -10,10 +10,6 @@ const faqs = [
     answer: "Our smart compression algorithm optimizes file size while maintaining visual quality. For most uses, the difference is imperceptible. We use industry-standard compression techniques that preserve text clarity and image quality.",
   },
   {
-    question: "Can I compress multiple PDFs at once?",
-    answer: "Yes! You can upload multiple PDF files and compress them all in one batch. Each file will be compressed individually and available for download.",
-  },
-  {
     question: "What types of PDFs compress best?",
     answer: "PDFs with high-resolution images, scanned documents, and presentations typically compress the most. Text-only PDFs are already quite efficient, so they may see smaller reductions.",
   },
@@ -44,12 +40,13 @@ export default function CompressPdfPage() {
       toolName="Compress PDF"
       toolDescription="Reduce PDF file size without losing quality. See before and after sizes."
       acceptedFormats={[".pdf", "application/pdf"]}
-      maxFiles={10}
+      maxFiles={1}
       maxSizeMB={10}
       faqs={faqs}
       steps={steps}
       actionButtonText="Compress PDF"
       outputFileName="compressed.pdf"
+      toolRoute="/tools/compress-pdf"
     />
   )
 }

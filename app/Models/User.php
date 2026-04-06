@@ -73,6 +73,7 @@ class User extends Authenticatable
         // Pro 
         return [
             'operations_per_day' => 999999,
+            'total_bytes_per_day' => 999999 * 1024 * 1024,
             'max_file_size_mb'   => 100,
             'plan'               => 'pro'
         ];

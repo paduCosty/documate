@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Tools\MergePdfController;
+use App\Http\Controllers\Tools\CompressPdfController;
 use App\Http\Controllers\Tools\ToolStatusController;
 use App\Http\Controllers\UserFileController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,7 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/tools/compress-pdf', [CompressPdfController::class, 'process'])->name('tools.compress-pdf.process');
     Route::post('/tools/merge-pdf', [MergePdfController::class, 'process'])
         ->name('tools.merge-pdf.process');
 });

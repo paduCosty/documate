@@ -11,7 +11,6 @@ import { Switch } from "@/components/ui/switch"
 import { useForm, usePage } from "@inertiajs/react"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -29,7 +28,7 @@ const sessions = [
   { id: 3, device: "Firefox on Windows", location: "Manchester, UK", time: "3 days ago", icon: Monitor, current: false },
 ]
 
-const notifications = [
+const notificationDefs = [
   { id: "email", title: "Email notifications", description: "Receive email updates about your files", icon: Bell, enabled: true, locked: false },
   { id: "weekly", title: "Weekly summary", description: "Get a weekly summary of your usage", icon: BarChart2, enabled: true, locked: false },
   { id: "product", title: "Product updates", description: "Be the first to know about new features", icon: Megaphone, enabled: false, locked: false },
@@ -42,7 +41,10 @@ export default function SettingsPage() {
 
   const [activeTab, setActiveTab] = useState("Profile")
   const [passwordStrength, setPasswordStrength] = useState(0)
-  const [deleteConfirmation, setDeleteConfirmation] = useState("")
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [notificationSettings, setNotificationSettings] = useState(
+    Object.fromEntries(notificationDefs.map((n) => [n.id, n.enabled]))
+  )
 
   const profileForm = useForm({
     name: user?.name || "",
@@ -53,6 +55,10 @@ export default function SettingsPage() {
     current_password: "",
     password: "",
     password_confirmation: "",
+  })
+
+  const deleteForm = useForm({
+    password: "",
   })
 
   const handlePasswordChange = (value: string) => {
@@ -66,30 +72,33 @@ export default function SettingsPage() {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    profileForm.patch('/profile', {
-      onSuccess: () => {
-        // Success message could be handled here
-      }
-    })
+    profileForm.patch("/profile")
   }
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    passwordForm.put('/password', {
+    passwordForm.put("/password", {
       onSuccess: () => {
         passwordForm.reset()
         setPasswordStrength(0)
-      }
+      },
     })
   }
 
-  const handleDeleteAccount = () => {
-    // This would need a form submission to /profile with DELETE method
-    // For now, we'll keep the UI as is
+  const handleDeleteAccount = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (deleteConfirmText !== "DELETE") return
+    deleteForm.delete("/profile", {
+      onSuccess: () => {
+        // Redirected to / by controller
+      },
+    })
   }
 
   const strengthLabels = ["Weak", "Fair", "Good", "Strong"]
   const strengthColors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500"]
+
+  const canDelete = deleteConfirmText === "DELETE" && deleteForm.data.password.length > 0
 
   return (
     <AppLayout>
@@ -118,7 +127,6 @@ export default function SettingsPage() {
         {/* Profile Tab */}
         {activeTab === "Profile" && (
           <div className="mt-8">
-            {/* Avatar Section */}
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-zinc-800 text-2xl font-bold text-white">
                 {user?.name?.split(" ").map((n: string) => n[0]).join("") || "U"}
@@ -129,19 +137,18 @@ export default function SettingsPage() {
               </DocumateButton>
             </div>
 
-            {/* Profile Form */}
             <form onSubmit={handleProfileSubmit} className="mt-8 max-w-md space-y-5">
               <DocumateInput
                 label="Full name"
                 value={profileForm.data.name}
-                onChange={(e) => profileForm.setData('name', e.target.value)}
+                onChange={(e) => profileForm.setData("name", e.target.value)}
                 error={profileForm.errors.name}
               />
               <div>
                 <DocumateInput
                   label="Email"
                   value={profileForm.data.email}
-                  onChange={(e) => profileForm.setData('email', e.target.value)}
+                  onChange={(e) => profileForm.setData("email", e.target.value)}
                   error={profileForm.errors.email}
                 />
                 <div className="mt-1.5 flex items-center gap-2">
@@ -158,7 +165,6 @@ export default function SettingsPage() {
         {/* Security Tab */}
         {activeTab === "Security" && (
           <div className="mt-8">
-            {/* Change Password */}
             <div className="max-w-md">
               <h3 className="text-lg font-semibold text-white">Change password</h3>
               <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-4">
@@ -166,7 +172,7 @@ export default function SettingsPage() {
                   label="Current password"
                   type="password"
                   value={passwordForm.data.current_password}
-                  onChange={(e) => passwordForm.setData('current_password', e.target.value)}
+                  onChange={(e) => passwordForm.setData("current_password", e.target.value)}
                   error={passwordForm.errors.current_password}
                 />
                 <div>
@@ -175,12 +181,11 @@ export default function SettingsPage() {
                     type="password"
                     value={passwordForm.data.password}
                     onChange={(e) => {
-                      passwordForm.setData('password', e.target.value)
+                      passwordForm.setData("password", e.target.value)
                       handlePasswordChange(e.target.value)
                     }}
                     error={passwordForm.errors.password}
                   />
-                  {/* Password Strength Bar */}
                   <div className="mt-2 flex gap-1">
                     {[0, 1, 2, 3].map((i) => (
                       <div
@@ -199,7 +204,7 @@ export default function SettingsPage() {
                   label="Confirm password"
                   type="password"
                   value={passwordForm.data.password_confirmation}
-                  onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
+                  onChange={(e) => passwordForm.setData("password_confirmation", e.target.value)}
                   error={passwordForm.errors.password_confirmation}
                 />
                 <DocumateButton disabled={passwordForm.processing}>
@@ -208,7 +213,6 @@ export default function SettingsPage() {
               </form>
             </div>
 
-            {/* Active Sessions */}
             <div className="mt-12">
               <h3 className="text-lg font-semibold text-white">Active sessions</h3>
               <div className="mt-4 space-y-2">
@@ -242,7 +246,7 @@ export default function SettingsPage() {
         {/* Notifications Tab */}
         {activeTab === "Notifications" && (
           <div className="mt-8 space-y-2">
-            {notifications.map((notification) => (
+            {notificationDefs.map((notification) => (
               <DocumateCard key={notification.id} padding="sm" className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <notification.icon className="h-5 w-5 text-zinc-500" />
@@ -254,7 +258,8 @@ export default function SettingsPage() {
                 <Switch
                   checked={notificationSettings[notification.id]}
                   onCheckedChange={(checked) =>
-                    !notification.locked && setNotificationSettings((prev) => ({ ...prev, [notification.id]: checked }))
+                    !notification.locked &&
+                    setNotificationSettings((prev) => ({ ...prev, [notification.id]: checked }))
                   }
                   disabled={notification.locked}
                   className="data-[state=checked]:bg-white"
@@ -285,51 +290,51 @@ export default function SettingsPage() {
                       <AlertDialogTitle className="text-white">Delete your account?</AlertDialogTitle>
                       <AlertDialogDescription className="text-zinc-400">
                         This will permanently delete all your files, history, and cancel any active subscription.
-                        Type <span className="font-mono text-red-400">DELETE</span> to confirm.
+                        This action <span className="text-white font-medium">cannot be undone</span>.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault()
-                        if (deleteConfirmation === "DELETE") {
-                          // Use Inertia to submit delete request
-                          const form = document.createElement('form')
-                          form.method = 'POST'
-                          form.action = '/profile'
-                          const methodField = document.createElement('input')
-                          methodField.type = 'hidden'
-                          methodField.name = '_method'
-                          methodField.value = 'DELETE'
-                          const passwordField = document.createElement('input')
-                          passwordField.type = 'hidden'
-                          passwordField.name = 'password'
-                          passwordField.value = '' // Would need to add password confirmation
-                          form.appendChild(methodField)
-                          form.appendChild(passwordField)
-                          document.body.appendChild(form)
-                          form.submit()
-                        }
-                      }}
-                      className="mt-4"
-                    >
-                      <input
-                        type="text"
-                        value={deleteConfirmation}
-                        onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        placeholder="Type DELETE to confirm"
-                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-red-900 focus:outline-none"
-                      />
-                      <AlertDialogFooter className="mt-4">
-                        <AlertDialogCancel className="border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-white">
-                          Keep my plan
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          type="submit"
-                          disabled={deleteConfirmation !== "DELETE"}
-                          className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+
+                    <form onSubmit={handleDeleteAccount} className="mt-2 space-y-4">
+                      <div>
+                        <label className="mb-1.5 block text-xs text-zinc-400">
+                          Type <span className="font-mono text-red-400">DELETE</span> to confirm
+                        </label>
+                        <input
+                          type="text"
+                          value={deleteConfirmText}
+                          onChange={(e) => setDeleteConfirmText(e.target.value)}
+                          placeholder="DELETE"
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-red-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-xs text-zinc-400">Your password</label>
+                        <input
+                          type="password"
+                          value={deleteForm.data.password}
+                          onChange={(e) => deleteForm.setData("password", e.target.value)}
+                          placeholder="Enter your password"
+                          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-red-900 focus:outline-none"
+                        />
+                        {deleteForm.errors.password && (
+                          <p className="mt-1 text-xs text-red-400">{deleteForm.errors.password}</p>
+                        )}
+                      </div>
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          onClick={() => { setDeleteConfirmText(""); deleteForm.reset() }}
+                          className="border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-white"
                         >
-                          Delete permanently
-                        </AlertDialogAction>
+                          Cancel
+                        </AlertDialogCancel>
+                        <button
+                          type="submit"
+                          disabled={!canDelete || deleteForm.processing}
+                          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {deleteForm.processing ? "Deleting..." : "Delete permanently"}
+                        </button>
                       </AlertDialogFooter>
                     </form>
                   </AlertDialogContent>
