@@ -50,7 +50,7 @@ class SplitPdfJob implements ShouldQueue
             }
 
             // Working directory for intermediate files
-            $workDir = Storage::disk("local")->path("split/{$this->userFile->user_id}/{$this->userFile->uuid}");
+            $workDir = Storage::disk("local")->path("split/" . $this->userFile->ownerId() . "/" . $this->userFile->uuid);
             if (!is_dir($workDir)) {
                 mkdir($workDir, 0755, true);
             }
@@ -111,10 +111,10 @@ class SplitPdfJob implements ShouldQueue
             }
 
             // Step 3: Package into ZIP
-            $zipDir      = Storage::disk("local")->path("split/{$this->userFile->user_id}");
+            $zipDir      = Storage::disk("local")->path("split/" . $this->userFile->ownerId());
             $zipFilename = "split-" . date("Ymd-His") . ".zip";
             $zipFullPath = "{$zipDir}/{$zipFilename}";
-            $zipRelPath  = "split/{$this->userFile->user_id}/{$zipFilename}";
+            $zipRelPath  = "split/" . $this->userFile->ownerId() . "/" . $zipFilename;
 
             $zip = new ZipArchive();
             if ($zip->open($zipFullPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {

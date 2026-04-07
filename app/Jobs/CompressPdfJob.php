@@ -40,7 +40,7 @@ class CompressPdfJob implements ShouldQueue
             }
 
             $outputFilename = "compressed-" . date("Ymd-His") . ".pdf";
-            $outputRelativePath = "compressed/{$this->userFile->user_id}/{$outputFilename}";
+            $outputRelativePath = "compressed/" . $this->userFile->ownerId() . "/{$outputFilename}";
             $outputFullPath = Storage::disk("local")->path($outputRelativePath);
 
             if (!is_dir(dirname($outputFullPath))) {

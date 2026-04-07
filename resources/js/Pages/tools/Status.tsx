@@ -33,7 +33,7 @@ export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
     // Polling
     useEffect(() => {
         const poll = setInterval(async () => {
-            if (fileStatus.status === "pending" || fileStatus.status === "processing") {
+            if (fileStatus.status === "pending" || fileStatus.status === "processing" || fileStatus.status === "awaiting_payment") {
                 try { const r = await fetch(`/status/${fileUuid}/poll`); if (r.ok) setFileStatus(await r.json()); } catch {}
             }
         }, 2000);
@@ -43,7 +43,7 @@ export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
     // Progress animation – driven entirely by JS, no CSS tricks
     useEffect(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
-        if (fileStatus.status === "failed") return;
+        if (fileStatus.status === "failed" || fileStatus.status === "awaiting_payment") return;
 
         const cfg: Record<string, { target: number; speed: number; tick: number }> = {
             pending:    { target: 20,  speed: 0.35, tick: 80  },
@@ -71,7 +71,8 @@ export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
         }
     }, [fileStatus.status, progress]);
 
-    const isFailed   = fileStatus.status === "failed";
+    const isFailed          = fileStatus.status === "failed";
+    const isAwaitingPayment = fileStatus.status === "awaiting_payment";
     const label      = operationLabels[fileStatus.operation_type] ?? defaultLabel;
     const pct        = Math.min(Math.round(progress), 100);
     const statusText = fileStatus.status === "pending" ? "Queued — waiting for worker..."
@@ -88,8 +89,22 @@ export default function ToolStatusPage({ fileUuid, initialStatus }: Props) {
 
                 <DocumateCard className="p-10 text-center">
 
+                    {/* Awaiting payment – file saved, waiting for subscription */}
+                    {isAwaitingPayment && (
+                        <>
+                            <div className="mx-auto w-fit rounded-full bg-amber-950 p-4">
+                                <Loader2 className="h-12 w-12 text-amber-400 animate-spin" />
+                            </div>
+                            <h2 className="mt-6 text-2xl font-semibold text-white">Waiting for payment</h2>
+                            <p className="mt-3 text-zinc-400">
+                                Your file is saved and will be processed automatically once your subscription is confirmed.
+                            </p>
+                            <p className="mt-2 text-sm text-zinc-500">This page will update automatically.</p>
+                        </>
+                    )}
+
                     {/* Processing / bar – shown until bar reaches 100% */}
-                    {!showSuccess && !isFailed && (
+                    {!isAwaitingPayment && !showSuccess && !isFailed && (
                         <>
                             <Loader2 className="mx-auto h-12 w-12 animate-spin text-white" />
                             <h2 className="mt-6 text-2xl font-semibold text-white">{label.processingMsg}</h2>

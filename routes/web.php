@@ -31,31 +31,16 @@ Route::get('/', function () {
     return Inertia::render('page');
 });
 
-Route::middleware('auth')->group(function () {
-    Route::post('/tools/split-pdf', [SplitPdfController::class, 'process'])->name('tools.split-pdf.process');
-    Route::post('/tools/compress-pdf', [CompressPdfController::class, 'process'])->name('tools.compress-pdf.process');
-    Route::post('/tools/merge-pdf', [MergePdfController::class, 'process'])
-        ->name('tools.merge-pdf.process');
-});
+// Tool process routes — open to guests and authenticated users
+Route::post('/tools/split-pdf', [SplitPdfController::class, 'process'])->name('tools.split-pdf.process');
+Route::post('/tools/compress-pdf', [CompressPdfController::class, 'process'])->name('tools.compress-pdf.process');
+Route::post('/tools/merge-pdf', [MergePdfController::class, 'process'])->name('tools.merge-pdf.process');
 
 
-Route::middleware('auth')->group(function () {
-   // Status page - Inertia render (IMPORTANT)
-    Route::get('/status/{uuid}', [ToolStatusController::class, 'show'])
-         ->name('tools.status');
-
-    // Polling endpoint - JSON allowed
-    Route::get('/status/{uuid}/poll', [ToolStatusController::class, 'status'])
-         ->name('tools.status.poll');
-
-    // Download
-    Route::get('/tools/download/{uuid}', [ToolStatusController::class, 'download'])
-         ->name('tools.download');
-
-    // Merge PDF route
-    Route::post('/merge-pdf', [MergePdfController::class, 'process'])
-         ->name('tools.merge-pdf.process');
-});
+// Status + download — open to guests and authenticated users (controller checks ownership)
+Route::get('/status/{uuid}', [ToolStatusController::class, 'show'])->name('tools.status');
+Route::get('/status/{uuid}/poll', [ToolStatusController::class, 'status'])->name('tools.status.poll');
+Route::get('/tools/download/{uuid}', [ToolStatusController::class, 'download'])->name('tools.download');
 
 
 Route::prefix('tools')->group(function () {
@@ -235,17 +220,15 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
 
 Route::get('/pricing', [SubscriptionController::class, 'index'])->name('pricing');
 
+// Checkout + success open to guests (controller handles both paths)
+Route::post('/subscription/checkout/{plan}', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('billing.success');
+Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('billing.cancel');
+
+// Auth-only billing routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard/billing', [SubscriptionController::class, 'billing'])->name('billing');
-
-    Route::post('/subscription/checkout/{plan}', [SubscriptionController::class, 'checkout'])
-        ->name('subscription.checkout');
-
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('subscription.cancel');
-
-    Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('billing.success');
-    Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('billing.cancel');
-
     Route::post('/files/upload', [UserFileController::class, 'upload'])->name('files.upload');
     Route::get('/files/{fileId}/download', [UserFileController::class, 'download'])->name('files.download');
 });

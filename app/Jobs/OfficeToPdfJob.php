@@ -42,7 +42,7 @@ class OfficeToPdfJob implements ShouldQueue
 
             $config  = OfficeToPdfRegistry::get($this->conversionType);
             $workDir = Storage::disk("local")->path(
-                "{$config->type}/{$this->userFile->user_id}/{$this->userFile->uuid}"
+                "{$config->type}/" . $this->userFile->ownerId() . "/" . $this->userFile->uuid
             );
 
             if (!is_dir($workDir)) {
@@ -56,12 +56,12 @@ class OfficeToPdfJob implements ShouldQueue
                 $convertedFiles[] = $outPath;
             }
 
-            $outDir = Storage::disk("local")->path("{$config->type}/{$this->userFile->user_id}");
+            $outDir = Storage::disk("local")->path("{$config->type}/" . $this->userFile->ownerId());
 
             if (count($convertedFiles) === 1) {
                 $outFilename = "{$config->outputPrefix}-" . date("Ymd-His") . ".pdf";
                 $outFullPath = "{$outDir}/{$outFilename}";
-                $outRelPath  = "{$config->type}/{$this->userFile->user_id}/{$outFilename}";
+                $outRelPath  = "{$config->type}/" . $this->userFile->ownerId() . "/" . $outFilename;
 
                 copy($convertedFiles[0], $outFullPath);
 
@@ -78,7 +78,7 @@ class OfficeToPdfJob implements ShouldQueue
             } else {
                 $zipFilename = "{$config->outputPrefix}-" . date("Ymd-His") . ".zip";
                 $zipFullPath = "{$outDir}/{$zipFilename}";
-                $zipRelPath  = "{$config->type}/{$this->userFile->user_id}/{$zipFilename}";
+                $zipRelPath  = "{$config->type}/" . $this->userFile->ownerId() . "/" . $zipFilename;
 
                 $zip = new ZipArchive();
                 if ($zip->open($zipFullPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {

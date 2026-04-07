@@ -84,7 +84,8 @@ class DashboardService
                 'date'       => $file->created_at->diffForHumans(),
                 'expires'    => $this->getExpirationText($file),
                 'isExpired'  => $file->expires_at?->isPast() ?? false,
-                'canDownload' => $file->status === 'completed' && !($file->expires_at?->isPast() ?? false) && $file->output_path,
+                'canDownload'     => $file->status === 'completed' && !($file->expires_at?->isPast() ?? false) && $file->output_path,
+                'awaitingPayment' => $file->status === 'awaiting_payment',
             ]);
     }
 

@@ -6,69 +6,66 @@ use App\Http\Controllers\Controller;
 use App\Jobs\OfficeToPdfJob;
 use App\Models\UserFile;
 use App\Services\Conversion\OfficeToPdfRegistry;
+use App\Services\Guest\GuestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class OfficeToPdfController extends Controller
 {
+    use SavesFileForPayment;
+
+    public function __construct(private GuestService $guests) {}
+
     public function process(Request $request, string $conversionType)
     {
         $config = OfficeToPdfRegistry::get($conversionType);
 
-        $user       = $request->user();
-        $limits     = $user->currentPlanLimits();
-        $todayUsage = $user->todayUsage();
+        $ctx    = $this->guests->context($request);
+        $limits = $ctx->limits;
 
-        if ($todayUsage->hasReachedLimit($limits["operations_per_day"], $limits["total_bytes_per_day"])) {
-            return redirect()->route("pricing")
-                ->with("error", "You have reached your daily operation limit. Upgrade to Pro to continue.");
-        }
-
-        $mimeList = implode(",", $config->mimes);
+        $maxKb = $limits['max_file_size_mb'] * 1024;
         $request->validate([
-            "files.*" => "required|file|mimes:{$mimeList}|max:" . ($limits["max_file_size_mb"] * 1024),
+            'files'   => 'required|array|min:1|max:' . $config->maxFiles,
+            'files.*' => 'required|file|mimes:' . implode(',', $config->mimes) . '|max:' . $maxKb,
         ]);
 
-        $uploadedFiles = $request->file("files", []);
-
-        if (empty($uploadedFiles)) {
-            return back()->with("error", "Please upload at least one file.");
-        }
-
-        $batchId  = Str::uuid();
-        $tempPath = "temp/{$config->type}/{$user->id}/{$batchId}";
-
-        $storedFiles    = [];
-        $totalInputSize = 0;
-        $originalNames  = [];
+        $uploadedFiles     = $request->file('files');
+        $originalFilenames = [];
+        $totalInputSize    = 0;
+        $batchId           = (string) Str::uuid();
+        $tempPath          = $ctx->storagePath(str_replace('-', '_', $conversionType), $batchId);
+        $storedPaths       = [];
 
         foreach ($uploadedFiles as $file) {
-            $originalNames[]  = $file->getClientOriginalName();
-            $totalInputSize  += $file->getSize();
-            $storedPath       = $file->store($tempPath, "local");
-            $storedFiles[]    = Storage::disk("local")->path($storedPath);
+            $originalFilenames[] = $file->getClientOriginalName();
+            $totalInputSize     += $file->getSize();
+            $storedPath          = trim($file->store($tempPath, 'local'));
+            $storedPaths[]       = Storage::disk('local')->path($storedPath);
         }
 
-        $todayUsage->recordUsage($totalInputSize, 1);
+        if ($ctx->hasReachedLimit()) {
+            return $this->saveForPayment(
+                $batchId, $ctx->ownerField(), $config->operationType,
+                $originalFilenames, $totalInputSize,
+                $storedPaths, $tempPath,
+            );
+        }
+
+        $ctx->recordUsage($totalInputSize, 1);
 
         $userFile = UserFile::create([
-            "uuid"               => $batchId,
-            "user_id"            => $user->id,
-            "operation_type"     => $config->operationType,
-            "original_filenames" => $originalNames,
-            "input_size_bytes"   => $totalInputSize,
-            "status"             => "pending",
-            "expires_at"         => now()->addHours(24),
-            "metadata"           => [
-                "batch_id"        => $batchId,
-                "file_count"      => count($uploadedFiles),
-                "conversion_type" => $config->type,
-            ],
+            'uuid'               => $batchId,
+            ...$ctx->ownerField(),
+            'operation_type'     => $config->operationType,
+            'original_filenames' => $originalFilenames,
+            'input_size_bytes'   => $totalInputSize,
+            'status'             => 'pending',
+            'metadata'           => ['batch_id' => $batchId, 'conversion_type' => $conversionType],
         ]);
 
-        OfficeToPdfJob::dispatch($userFile, $storedFiles, $tempPath, $config->type);
+        OfficeToPdfJob::dispatch($userFile, $storedPaths, $tempPath, $conversionType);
 
-        return redirect()->route("tools.status", $userFile->uuid);
+        return redirect()->route('tools.status', $userFile->uuid);
     }
 }

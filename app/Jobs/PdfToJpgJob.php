@@ -39,7 +39,7 @@ class PdfToJpgJob implements ShouldQueue
             $this->userFile->update(["status" => "processing"]);
 
             $workDir = Storage::disk("local")->path(
-                "pdf-to-jpg/{$this->userFile->user_id}/{$this->userFile->uuid}"
+                "pdf-to-jpg/" . $this->userFile->ownerId() . "/" . $this->userFile->uuid
             );
 
             if (!is_dir($workDir)) {
@@ -66,10 +66,10 @@ class PdfToJpgJob implements ShouldQueue
                 throw new \Exception("No images were produced. Output: " . implode("\n", $out));
             }
 
-            $outDir      = Storage::disk("local")->path("pdf-to-jpg/{$this->userFile->user_id}");
+            $outDir      = Storage::disk("local")->path("pdf-to-jpg/" . $this->userFile->ownerId());
             $zipFilename = "pdf-to-jpg-" . date("Ymd-His") . ".zip";
             $zipFullPath = "{$outDir}/{$zipFilename}";
-            $zipRelPath  = "pdf-to-jpg/{$this->userFile->user_id}/{$zipFilename}";
+            $zipRelPath  = "pdf-to-jpg/" . $this->userFile->ownerId() . "/" . $zipFilename;
 
             $zip = new ZipArchive();
             if ($zip->open($zipFullPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
