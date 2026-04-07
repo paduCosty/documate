@@ -50,6 +50,8 @@ export default function ExcelToPdfPage() {
       steps={steps}
       actionButtonText="Convert to PDF"
       outputFileName="spreadsheet.pdf"
+      dropzoneText="Drop your Excel spreadsheets here"
+      toolRoute="/tools/excel-to-pdf"
     />
   )
 }

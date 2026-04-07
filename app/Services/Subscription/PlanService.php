@@ -2,140 +2,93 @@
 
 namespace App\Services\Subscription;
 
-use Illuminate\Support\Collection;
-
 /**
- * Centralized service for managing subscription plans, pricing and Stripe mappings.
- *
- * This keeps all plan-related data and logic in one place (Single Source of Truth).
+ * Thin wrapper around config/plans.php.
+ * All plan data (prices, Stripe IDs, features) lives in that config file.
  */
 class PlanService
 {
     /**
-     * Return all available plans for the pricing page.
+     * All plans as an array ready for the frontend.
      */
     public function getAllPlans(): array
     {
-        return [
-            [
-                'id'            => 'free',
-                'name'          => 'Free',
-                'price_monthly' => 0,
-                'price_yearly'  => 0,
-                'popular'       => false,
-                'features'      => [
-                    "3 operations/day",
-                    "10MB max file size",
-                    "Merge & Compress PDF",
-                    "Word/Excel/PPT to PDF",
-                    "No account required",
-                ],
-            ],
-            [
-                'id'            => 'pro',
-                'name'          => 'Pro',
-                'price_monthly' => 9,        // €9
-                'price_yearly'  => 84,       // €7/monthly billed annually
-                'popular'       => true,
-                'features'      => [
-                    "Unlimited PDF operations",
-                    "Up to 100MB per file",
-                    "All 7 tools + OCR + Sign",
-                    "30-day file history",
-                    "Priority support"
-                ],
-            ],
-            // [
-            //     'id'            => 'business',
-            //     'name'          => 'Business',
-            //     'price_monthly' => 19,
-            //     'price_yearly'  => 180,
-            //     'popular'       => false,
-            //     'features'      => [
-            //         "Everything in Pro",
-            //         "Up to 500MB per file",
-            //         "AI Chat with PDF",
-            //         "Public API access",
-            //         "1-year file history",
-            //         "Dedicated support"
-            //     ],
-            // ],
-        ];
+        return array_values(config("plans.plans", []));
     }
 
     /**
-     * Map internal plan keys to real Stripe Price IDs.
+     * Map a plan key like "pro_monthly" or "pro_yearly" to a Stripe Price ID.
+     * Returns null if the plan is not found or has no Stripe price configured.
      */
     public function getStripePriceId(string $planKey): ?string
     {
-        $mapping = [
-            'pro_monthly'       => 'price_1THNO7PrtZkTUd5yjnEcp7uk',
-            'pro_yearly'        => 'price_1THNL3PrtZkTUd5yZskTHj34',
-            // 'business_monthly'  => 'price_1XXXXXXXXXXXXXXX',
-            // 'business_yearly' => '...',
-        ];
+        [$planId, $cycle] = array_pad(explode("_", $planKey, 2), 2, null);
 
-        return $mapping[$planKey] ?? null;
+        $plan = config("plans.plans.{$planId}");
+
+        if (!$plan) {
+            return null;
+        }
+
+        return match ($cycle) {
+            "monthly" => $plan["stripe_monthly"] ?? null,
+            "yearly"  => $plan["stripe_yearly"]  ?? null,
+            default    => null,
+        };
     }
 
     /**
-     * Get active plan information for billing page.
+     * Get active plan label and amount for the billing page.
+     * Builds the reverse map from config so it stays in sync automatically.
      */
     public function getActivePlanInfo($subscription): array
     {
         if (!$subscription || !$subscription->stripe_price) {
-            return [
-                'active_plan' => 'Free',
-                'amount'      => 0,
-                'currency'    => 'EUR',
-                'label'       => 'Free Plan',
-            ];
+            return ["active_plan" => "Free", "amount" => 0, "currency" => "EUR", "label" => "Free Plan"];
         }
 
-        $planMap = [
-            'price_1THNO7PrtZkTUd5yjnEcp7uk' => [
-                'label'    => 'Pro Monthly',
-                'amount'   => 900,           // în cenți
-                'currency' => 'EUR'
-            ],
-            'price_1THNL3PrtZkTUd5yZskTHj34' => [
-                'label'    => 'Pro Yearly',
-                'amount'   => 8400,
-                'currency' => 'EUR'
-            ],
-            // adaugă și pentru Business
-        ];
+        foreach (config("plans.plans", []) as $planId => $plan) {
+            foreach (["monthly", "yearly"] as $cycle) {
+                $priceId = $plan["stripe_" . $cycle] ?? null;
+                if ($priceId && $priceId === $subscription->stripe_price) {
+                    $amount = $cycle === "monthly"
+                        ? $plan["price_monthly"] * 100
+                        : $plan["price_yearly"]  * 100;
+                    $label  = $plan["name"] . " " . ucfirst($cycle);
+                    return [
+                        "active_plan" => $label,
+                        "amount"      => $amount,
+                        "currency"    => "EUR",
+                        "label"       => $label,
+                        "cycle"       => $cycle,
+                    ];
+                }
+            }
+        }
 
-        $data = $planMap[$subscription->stripe_price] ?? [
-            'label'    => 'Unknown Plan',
-            'amount'   => 0,
-            'currency' => 'EUR'
-        ];
-
-        return [
-            'active_plan' => $data['label'],
-            'amount'      => $data['amount'],
-            'currency'    => $data['currency'],
-            'label'       => $data['label'],
-        ];
+        return ["active_plan" => "Pro", "amount" => 0, "currency" => "EUR", "label" => "Pro"];
     }
 
     /**
      * Get product details for the custom checkout page.
      */
-    public function getProductForCheckout(string $plan): ?array
+    public function getProductForCheckout(string $planKey): ?array
     {
-        $products = [
-            'pro_monthly' => [
-                'id'           => 'pro_monthly',
-                'name'         => 'Pro',
-                'priceInCents' => 900,
-                'interval'     => 'month',
-                'features'     => [/* ... */],
-            ],
-            // ... restul planurilor
-        ];
+        [$planId, $cycle] = array_pad(explode("_", $planKey, 2), 2, "monthly");
 
-        return $products[$plan] ?? null;
+        $plan = config("plans.plans.{$planId}");
+        if (!$plan) {
+            return null;
+        }
+
+        $price = $cycle === "yearly" ? $plan["price_yearly"] : $plan["price_monthly"];
+
+        return [
+            "id"           => $planKey,
+            "name"         => $plan["name"],
+            "priceInCents" => $price * 100,
+            "interval"     => $cycle === "yearly" ? "year" : "month",
+            "features"     => $plan["features"],
+        ];
     }
 }

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-type CardPadding = "sm" | "md" | "lg"
+type CardPadding = "none" | "sm" | "md" | "lg"
 
 interface DocumateCardProps {
   children: React.ReactNode
@@ -10,6 +10,7 @@ interface DocumateCardProps {
 }
 
 const paddingStyles: Record<CardPadding, string> = {
+  none: "",
   sm: "p-4",
   md: "p-6",
   lg: "p-8",

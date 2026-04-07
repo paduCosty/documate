@@ -6,16 +6,22 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\Tools\MergePdfController;
 use App\Http\Controllers\Tools\CompressPdfController;
 use App\Http\Controllers\Tools\SplitPdfController;
-use App\Http\Controllers\Tools\WordToPdfController;
+use App\Http\Controllers\Tools\OfficeToPdfController;
+use App\Http\Controllers\Tools\PdfToJpgController;
 use App\Http\Controllers\Tools\ToolStatusController;
 use App\Http\Controllers\UserFileController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 
+
 Route::get('/contact', function () {
-    return Inertia::render('contact/page');
-});
+    return Inertia::render('contact/page', [
+        'flash' => ['success' => session('success'), 'error' => session('error')],
+    ]);
+})->name('contact');
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
 Route::get('/faq', function () {
     return Inertia::render('faq/page');
@@ -68,7 +74,9 @@ Route::prefix('tools')->group(function () {
     Route::get('word-to-pdf', function () {
         return Inertia::render('tools/word-to-pdf/page');
     })->name('tools.word-to-pdf');
-    Route::post('word-to-pdf', [WordToPdfController::class, 'process'])->name('tools.word-to-pdf.process');
+    Route::post('word-to-pdf', [OfficeToPdfController::class, 'process'])->defaults('conversionType', 'word-to-pdf')->name('tools.word-to-pdf.process');
+    Route::post('excel-to-pdf', [OfficeToPdfController::class, 'process'])->defaults('conversionType', 'excel-to-pdf')->name('tools.excel-to-pdf.process');
+    Route::post('ppt-to-pdf', [OfficeToPdfController::class, 'process'])->defaults('conversionType', 'ppt-to-pdf')->name('tools.ppt-to-pdf.process');
 
     Route::get('excel-to-pdf', function () {
         return Inertia::render('tools/excel-to-pdf/page');
@@ -81,6 +89,7 @@ Route::prefix('tools')->group(function () {
     Route::get('pdf-to-jpg', function () {
         return Inertia::render('tools/pdf-to-jpg/page');
     })->name('tools.pdf-to-jpg');
+    Route::post('pdf-to-jpg', [PdfToJpgController::class, 'process'])->name('tools.pdf-to-jpg.process');
 
     Route::get('split-pdf', function () {
         return Inertia::render('tools/split-pdf/page');
@@ -119,8 +128,19 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
         return Inertia::render('dashboard/analytics/page');
     })->name('analytics');
 
-    Route::get('/settings', function () {
-        return Inertia::render('dashboard/settings/page');
+    Route::get('/settings', function (\Illuminate\Http\Request $req) {
+        $user = $req->user();
+        return Inertia::render('dashboard/settings/page', [
+            'status'       => session('status'),
+            'isSocialUser' => (bool) $user->social_provider,
+            'socialProvider' => $user->social_provider,
+            'notificationSettings' => $user->notification_settings ?? [
+                'email'    => true,
+                'weekly'   => true,
+                'product'  => false,
+                'security' => true,
+            ],
+        ]);
     })->name('settings');
 
     Route::get('/reports', function () {
@@ -131,8 +151,54 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
         return Inertia::render('dashboard/users/page');
     })->name('users');
 
-    Route::get('/usage', function () {
-        return Inertia::render('dashboard/usage/page');
+    Route::get('/usage', function (\Illuminate\Http\Request $req) {
+        $user   = $req->user();
+        $limits = $user->currentPlanLimits();
+
+        $allTools = [
+            'merge_pdf'    => ['label' => 'Merge PDF',    'color' => 'bg-blue-500'],
+            'compress_pdf' => ['label' => 'Compress PDF', 'color' => 'bg-green-500'],
+            'split_pdf'    => ['label' => 'Split PDF',    'color' => 'bg-orange-500'],
+            'word-to-pdf'  => ['label' => 'Word to PDF',  'color' => 'bg-red-500'],
+            'excel-to-pdf' => ['label' => 'Excel to PDF', 'color' => 'bg-yellow-500'],
+            'ppt-to-pdf'   => ['label' => 'PPT to PDF',   'color' => 'bg-purple-500'],
+            'pdf-to-jpg'   => ['label' => 'PDF to JPG',   'color' => 'bg-pink-500'],
+        ];
+
+        $ranges = [
+            'this_month'    => [now()->startOfMonth(),           now()],
+            'last_month'    => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'last_3_months' => [now()->subMonths(3)->startOfMonth(), now()],
+        ];
+
+        $periods = [];
+        foreach ($ranges as $key => [$from, $to]) {
+            $q          = $user->files()->whereBetween('created_at', [$from, $to]);
+            $toolCounts = (clone $q)->selectRaw('operation_type, COUNT(*) as cnt')
+                ->groupBy('operation_type')->pluck('cnt', 'operation_type')->toArray();
+
+            $tools = [];
+            foreach ($allTools as $type => $info) {
+                $tools[] = ['type' => $type, 'label' => $info['label'], 'color' => $info['color'], 'count' => $toolCounts[$type] ?? 0];
+            }
+
+            $periods[$key] = [
+                'totalFiles'  => (clone $q)->count(),
+                'totalBytes'  => (clone $q)->sum('input_size_bytes'),
+                'tools'       => $tools,
+            ];
+        }
+
+        $todayUsage  = $user->todayUsage();
+        $isPro       = $user->subscribed('default') && !$user->subscription('default')?->canceled();
+
+        return Inertia::render('dashboard/usage/page', [
+            'periods'      => $periods,
+            'limits'       => $limits,
+            'todayOps'     => $todayUsage->operations_count ?? 0,
+            'storageBytes' => $user->files()->sum('input_size_bytes'),
+            'isPro'        => $isPro,
+        ]);
     })->name('usage');
 
     Route::get('/files', function (\Illuminate\Http\Request $request) {
@@ -143,9 +209,9 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
             ->through(fn ($file) => [
                 'id'         => $file->id,
                 'uuid'       => $file->uuid,
-                'name'       => is_array($file->original_filenames)
-                                    ? implode(', ', $file->original_filenames)
-                                    : ($file->original_filenames ?? 'Unknown'),
+                'name'       => $file->output_path
+                                    ? basename($file->output_path)
+                                    : (is_array($file->original_filenames) ? implode(', ', $file->original_filenames) : ($file->original_filenames ?? 'Unknown')),
                 'tool'       => $file->operation_type,
                 'status'     => $file->status,
                 'inputSize'  => $file->input_size_bytes,
@@ -192,6 +258,7 @@ Route::get('/checkout/{plan}', [SubscriptionController::class, 'showCheckout'])-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

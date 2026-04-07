@@ -78,7 +78,7 @@ class DashboardService
             ->map(fn ($file) => [
                 'id'         => $file->id,
                 'uuid'       => $file->uuid,
-                'name'       => is_array($file->original_filenames) ? implode(', ', $file->original_filenames) : $file->original_filenames,
+                'name'       => $file->output_path ? basename($file->output_path) : (is_array($file->original_filenames) ? implode(', ', $file->original_filenames) : $file->original_filenames),
                 'tool'       => $file->operation_type ?? 'unknown',
                 'size'       => $this->formatFileSize($file->input_size_bytes),
                 'date'       => $file->created_at->diffForHumans(),

@@ -39,6 +39,7 @@ interface ToolLayoutProps {
   outputFileName?: string;
   toolRoute: string;           // Required: backend route (e.g. "/tools/merge-pdf")
   minFiles?: number;           // Minimum files required to enable action button (default: 1)
+  dropzoneText?: string;        // Override "Drop your PDF files here" label
 }
 
 interface UploadedFile {
@@ -61,6 +62,7 @@ export function ToolLayout({
   actionButtonText,
   outputFileName = "output.pdf",
   minFiles = 1,
+  dropzoneText = "Drop your files here",
   toolRoute,
 }: ToolLayoutProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -246,7 +248,7 @@ export function ToolLayout({
               />
               <Upload className={cn("h-10 w-10", isDragging ? "text-white" : "text-zinc-600")} />
               <p className={cn("mt-4 font-medium", isDragging ? "text-white" : "text-white")}>
-                Drop your PDF files here
+                {dropzoneText}
               </p>
               <p className={cn("mt-1 text-sm", isDragging ? "text-zinc-300" : "text-zinc-500")}>
                 or click to browse

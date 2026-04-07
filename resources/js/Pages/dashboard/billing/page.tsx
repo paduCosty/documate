@@ -1,36 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { CreditCard, Download, Zap, ShieldCheck } from "lucide-react"
+import { useState } from "react"
+import { Check, ExternalLink, Crown } from "lucide-react"
 import { AppLayout } from "@/components/documate/app-layout"
 import { DocumateCard } from "@/components/documate/documate-card"
 import { DocumateBadge } from "@/components/documate/documate-badge"
-import { DocumateButton } from "@/components/documate/documate-button"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { BillingToggle, ProPlanCard, FREE_FEATURES } from "@/components/documate/plan-card"
 import { router, usePage } from "@inertiajs/react"
 
 type BillingPageProps = {
   subscription?: {
     name?: string
     stripe_status?: string
-    amount?: string | number
+    amount?: number
     currency?: string
     stripe_price?: string
     trial_ends_at?: string | null
     ends_at?: string | null
     canceled?: boolean
+    active_plan?: string
+    label?: string
   }
-  invoices?: Array<{ id: string; date: string; total: number; currency: string; status: string; hosted_invoice_url?: string }>
+  invoices?: Array<{
+    id: string
+    date: string
+    total: number
+    currency: string
+    status: string
+    hosted_invoice_url?: string
+  }>
   plans?: Array<{
     id: string
     name: string
@@ -42,22 +40,44 @@ type BillingPageProps = {
   flash?: { success?: string; error?: string }
 }
 
+const PRO_YEARLY_PRICE_ID = "price_1THNL3PrtZkTUd5yZskTHj34"
+
+const PRO_FEATURES = [
+  "Unlimited PDF operations per day",
+  "Up to 100MB per file",
+  "All 7 tools — Merge, Split, Compress, Convert & more",
+  "30-day file history",
+  "Priority support",
+]
+
 export default function BillingPage() {
   const { subscription, invoices = [], plans = [], flash = {} } = usePage().props as BillingPageProps
-  const [busy, setBusy] = useState(false)
+
+  const [billing, setBilling]     = useState<"monthly" | "yearly">("monthly")
+  const [busy, setBusy]           = useState(false)
   const [upgrading, setUpgrading] = useState(false)
 
-  const activePlan = subscription?.active_plan ?? (subscription?.name ? subscription.name.replace("_", " ") : "Free")
-  const isPaidUser = Boolean(subscription && !subscription.canceled && (subscription.stripe_status === "active" || subscription.stripe_status === "trialing" || subscription.status === "active" ))
-  const planName = activePlan
+  const proPlan       = plans.find((p) => p.id === "pro")
+  const monthlyPrice  = proPlan?.price_monthly ?? 9
+  const yearlyPrice   = proPlan?.price_yearly  ?? 84
 
-  const proPlan = plans.find(plan => plan.id === 'pro')
+  const isPaidUser = Boolean(
+    subscription &&
+    !subscription.canceled &&
+    (subscription.stripe_status === "active" || subscription.stripe_status === "trialing")
+  )
 
-  const handleCancelSubscription = () => {
-    if (!confirm("Are you sure you want to cancel your subscription?")) {
-      return
-    }
+  const isYearly  = subscription?.stripe_price === PRO_YEARLY_PRICE_ID
+  const planLabel = subscription?.label ?? subscription?.active_plan ?? "Pro"
 
+  const handleUpgrade = () => {
+    setUpgrading(true)
+    router.post(route("subscription.checkout", { plan: billing === "yearly" ? "pro_yearly" : "pro_monthly" }), {}, {
+      onFinish: () => setUpgrading(false),
+    })
+  }
+
+  const handleCancel = () => {
     setBusy(true)
     router.post(route("subscription.cancel"), {}, {
       onFinish: () => setBusy(false),
@@ -65,95 +85,127 @@ export default function BillingPage() {
   }
 
   return (
-    <AppLayout user={{ name: "Alex Johnson", email: "alex@example.com", plan: planName.toLowerCase() }}>
+    <AppLayout>
       <div className="px-8 py-10">
         <h2 className="text-2xl font-semibold text-white">Billing</h2>
+        <p className="mt-1 text-sm text-zinc-500">Manage your subscription and payment details.</p>
 
-        {flash.success && <p className="rounded-md bg-emerald-500/20 p-2 text-sm text-emerald-300">{flash.success}</p>}
-        {flash.error && <p className="rounded-md bg-rose-500/20 p-2 text-sm text-rose-300">{flash.error}</p>}
+        {flash.success && (
+          <div className="mt-4 rounded-xl border border-emerald-700/50 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-400">
+            {flash.success}
+          </div>
+        )}
+        {flash.error && (
+          <div className="mt-4 rounded-xl border border-red-700/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+            {flash.error}
+          </div>
+        )}
 
         {isPaidUser ? (
-          <>
-            <DocumateCard className="mt-6">
-              <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <DocumateBadge variant="pro">{planName}</DocumateBadge>
-                    <span className="text-lg font-semibold text-white">{planName} Plan</span>
+          /* ── PAID USER ── */
+          <div className="mt-8 space-y-4">
+            <DocumateCard>
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10">
+                    <Crown className="h-5 w-5 text-amber-400" />
                   </div>
-                  <p className="mt-1 text-sm text-zinc-500">Status: {subscription?.canceled ? "Canceled" : (subscription?.stripe_status ?? "active")}</p>
-                  {subscription?.canceled && subscription?.ends_at && (
-                    <p className="mt-1 text-sm text-zinc-400">Access until: {new Date(subscription.ends_at).toLocaleDateString()}</p>
-                  )}
-                  <p className="mt-1 text-sm text-zinc-400">Plan: {planName}</p>
-                  <p className="mt-1 text-sm text-zinc-400">
-                    {subscription?.amount ? `${(Number(subscription.amount) / 100).toFixed(2)} ${subscription.currency || "EUR"}` : "€7.00 / month"}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <DocumateButton variant="outline" size="sm" disabled={!subscription || busy}>Change plan</DocumateButton>
-                  <button onClick={handleCancelSubscription} className="text-sm text-zinc-600 transition-colors hover:text-red-400" disabled={busy || subscription?.canceled}>
-                    {busy ? "Canceling..." : subscription?.canceled ? "Canceled" : "Cancel subscription"}
-                  </button>
-                </div>
-              </div>
-            </DocumateCard>
-
-            <DocumateCard className="mt-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-zinc-500" />
                   <div>
-                    <span className="text-sm font-medium text-white">Card saved</span>
-                    <p className="text-xs text-zinc-500">Visa ending in 4242 (test)</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-semibold text-white">{planLabel}</span>
+                      <DocumateBadge variant="success">Active</DocumateBadge>
+                      {isYearly && <DocumateBadge variant="pro">Yearly</DocumateBadge>}
+                    </div>
+                    <p className="mt-0.5 text-sm text-zinc-400">
+                      {subscription?.amount
+                        ? `€${(subscription.amount / 100).toFixed(2)} billed ${isYearly ? "yearly" : "monthly"}`
+                        : isYearly ? `€${yearlyPrice}/year` : `€${monthlyPrice}/month`}
+                    </p>
+                    {subscription?.canceled && subscription.ends_at && (
+                      <p className="mt-1 text-xs text-amber-400">
+                        Access until {new Date(subscription.ends_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    )}
+                    {subscription?.trial_ends_at && (
+                      <p className="mt-1 text-xs text-blue-400">
+                        Trial ends {new Date(subscription.trial_ends_at).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <DocumateButton variant="ghost" size="sm">Update</DocumateButton>
+                {!subscription?.canceled && (
+                  <button onClick={handleCancel} disabled={busy}
+                    className="text-sm text-zinc-500 transition-colors hover:text-red-400 disabled:opacity-40">
+                    {busy ? "Canceling..." : "Cancel subscription"}
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 gap-2 border-t border-zinc-800 pt-5 sm:grid-cols-2">
+                {PRO_FEATURES.map((f) => (
+                  <div key={f} className="flex items-center gap-2 text-sm text-zinc-400">
+                    <Check className="h-4 w-4 shrink-0 text-emerald-400" />
+                    {f}
+                  </div>
+                ))}
               </div>
             </DocumateCard>
 
-            <DocumateCard className="mt-4 overflow-hidden p-0">
+            <DocumateCard padding="none" className="overflow-hidden">
               <div className="border-b border-zinc-800 px-6 py-4">
                 <span className="font-semibold text-white">Invoices</span>
               </div>
-              <div>
-                {invoices.length === 0 ? (
-                  <div className="px-6 py-4 text-sm text-zinc-400">No invoices yet.</div>
-                ) : (
-                  invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex items-center justify-between border-b border-zinc-800 px-6 py-4 last:border-0">
-                      <span className="font-mono text-xs text-zinc-300">{invoice.id}</span>
-                      <span className="text-xs text-zinc-500">{invoice.date}</span>
-                      <span className="font-mono text-sm text-white">{(invoice.total / 100).toFixed(2)} {invoice.currency?.toUpperCase() ?? "EUR"}</span>
-                      <DocumateBadge variant={invoice.status === "paid" ? "success" : "default"}>{invoice.status}</DocumateBadge>
-                      <button className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white" disabled>
-                        View
-                      </button>
+              {invoices.length === 0 ? (
+                <div className="px-6 py-8 text-center text-sm text-zinc-500">No invoices yet.</div>
+              ) : (
+                invoices.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between border-b border-zinc-800 px-6 py-4 last:border-0">
+                    <div>
+                      <span className="font-mono text-xs text-zinc-300">{inv.id}</span>
+                      <p className="text-xs text-zinc-500">{inv.date}</p>
                     </div>
-                  ))
-                )}
-              </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-sm text-white">€{(inv.total / 100).toFixed(2)}</span>
+                      <DocumateBadge variant={inv.status === "paid" ? "success" : "default"}>{inv.status}</DocumateBadge>
+                      {inv.hosted_invoice_url ? (
+                        <a href={inv.hosted_invoice_url} target="_blank" rel="noopener noreferrer"
+                          className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : <div className="w-7" />}
+                    </div>
+                  </div>
+                ))
+              )}
             </DocumateCard>
-          </>
+          </div>
         ) : (
-          <DocumateCard className="mt-6 border-zinc-700 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
-              <Zap className="h-6 w-6 text-amber-400" />
+          /* ── FREE USER ── */
+          <div className="mt-8 flex flex-col items-center">
+            <BillingToggle value={billing} onChange={setBilling} savingsPct={Math.round((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12) * 100)} />
+
+            <div className="mt-6 w-full max-w-sm">
+              <ProPlanCard
+                billing={billing}
+                monthlyPrice={monthlyPrice}
+                yearlyPrice={yearlyPrice}
+                onUpgrade={handleUpgrade}
+                loading={upgrading}
+              />
+
+              <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/50 px-5 py-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Your current plan — Free</p>
+                <ul className="mt-3 space-y-2">
+                  {FREE_FEATURES.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-zinc-500">
+                      <div className="h-1 w-1 rounded-full bg-zinc-600" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <h3 className="mt-4 text-xl font-semibold text-white">Upgrade to {proPlan?.name || 'Pro'}</h3>
-            <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-              {proPlan?.features.map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
-            <DocumateButton size="lg" className="mt-6" disabled={upgrading} onClick={() => { setUpgrading(true); router.post(route("subscription.checkout", { plan: "pro_monthly" })) }}>
-              {upgrading ? "Upgrading..." : `Upgrade — €${proPlan?.price_monthly}/month`}
-            </DocumateButton>
-            <div className="mt-3 flex items-center justify-center gap-1 text-xs text-zinc-600">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              30-day money-back guarantee
-            </div>
-          </DocumateCard>
+          </div>
         )}
       </div>
     </AppLayout>
