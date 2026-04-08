@@ -5,7 +5,10 @@ import { cn } from "@/lib/utils"
 type ButtonVariant = "primary" | "ghost" | "outline" | "destructive"
 type ButtonSize = "sm" | "md" | "lg"
 
-interface DocumateButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+type DocumateButtonAs = "button" | "a"
+
+interface DocumateButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  as?: DocumateButtonAs
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
@@ -25,21 +28,47 @@ const sizeStyles: Record<ButtonSize, string> = {
   lg: "px-6 py-3 text-base",
 }
 
-export const DocumateButton = forwardRef<HTMLButtonElement, DocumateButtonProps>(
-  ({ variant = "primary", size = "md", loading = false, disabled, children, className, ...props }, ref) => {
+export const DocumateButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, DocumateButtonProps>(
+  ({ as = "button", variant = "primary", size = "md", loading = false, disabled, children, className, ...props }, ref) => {
+    const classNames = cn(
+      "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-150",
+      "disabled:opacity-40 disabled:cursor-not-allowed",
+      "focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:outline-none",
+      variantStyles[variant],
+      sizeStyles[size],
+      className
+    )
+
+    if (as === "a") {
+      return (
+        <a
+          ref={ref as React.LegacyRef<HTMLAnchorElement>}
+          className={classNames}
+          aria-disabled={disabled || loading ? "true" : undefined}
+          {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+          onClick={(event) => {
+            if (disabled || loading) {
+              event.preventDefault()
+              return
+            }
+
+            if (props.onClick) {
+              ;(props.onClick as React.MouseEventHandler<HTMLAnchorElement>)(event)
+            }
+          }}
+        >
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {children}
+        </a>
+      )
+    }
+
     return (
       <button
-        ref={ref}
+        ref={ref as React.LegacyRef<HTMLButtonElement>}
         disabled={disabled || loading}
-        className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-150",
-          "disabled:opacity-40 disabled:cursor-not-allowed",
-          "focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:outline-none",
-          variantStyles[variant],
-          sizeStyles[size],
-          className
-        )}
-        {...props}
+        className={classNames}
+        {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         {children}

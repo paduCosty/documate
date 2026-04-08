@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create("guest_daily_usages", function (Blueprint $table) {
+            $table->id();
+            $table->string("guest_id", 36);
+            $table->date("date");
+            $table->unsignedInteger("operations_count")->default(0);
+            $table->unsignedBigInteger("total_bytes_processed")->default(0);
+            $table->timestamps();
+
+            $table->unique(["guest_id", "date"]);
+            $table->index("guest_id");
+            $table->index("date");
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists("guest_daily_usages");
+    }
+};

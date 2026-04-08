@@ -50,6 +50,8 @@ export default function PptToPdfPage() {
       steps={steps}
       actionButtonText="Convert to PDF"
       outputFileName="presentation.pdf"
+      dropzoneText="Drop your PowerPoint files here"
+      toolRoute="/tools/ppt-to-pdf"
     />
   )
 }

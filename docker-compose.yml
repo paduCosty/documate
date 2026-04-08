@@ -1,0 +1,66 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LOCAL DEVELOPMENT
+# Pornire: docker-compose up
+# Vite HMR rulează pe HOST: npm run dev (din /documate)
+# Backend:  http://localhost:8080
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev          # foloseste stage-ul de development
+    container_name: documate_app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_HOST: db
+      DB_PORT: 3306
+    volumes:
+      - .:/var/www/html                                   # live code reload
+      - /var/www/html/vendor                              # vendor izolat in container
+      - documate_storage:/var/www/html/storage            # storage persistent
+      - documate_bootstrap:/var/www/html/bootstrap/cache
+    ports:
+      - "8080:80"      # Laravel
+      - "5174:5173"    # Vite HMR (npm run dev pe host)
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - documate_net
+
+  db:
+    image: mysql:8.0
+    container_name: documate_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-documate}
+      MYSQL_USER: ${DB_USERNAME:-documate}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    volumes:
+      - documate_db:/var/lib/mysql
+    ports:
+      - "3310:3306"    # acces direct din IDE/TablePlus
+    networks:
+      - documate_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  documate_storage:
+  documate_bootstrap:
+  documate_db:
+
+networks:
+  documate_net:
+    driver: bridge

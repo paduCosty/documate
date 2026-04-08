@@ -44,12 +44,13 @@ export default function PdfToJpgPage() {
       toolName="PDF to JPG"
       toolDescription="Convert each PDF page into a high-quality JPG image."
       acceptedFormats={[".pdf", "application/pdf"]}
-      maxFiles={1}
       maxSizeMB={10}
       faqs={faqs}
       steps={steps}
       actionButtonText="Convert to JPG"
       outputFileName="images.zip"
+      dropzoneText="Drop your PDF here"
+      toolRoute="/tools/pdf-to-jpg"
     />
   )
 }

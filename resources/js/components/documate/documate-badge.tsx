@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-type BadgeVariant = "default" | "success" | "error" | "pro" | "business" | "new"
+type BadgeVariant = "default" | "success" | "error" | "pro" | "business" | "new" | "warning"
 
 interface DocumateBadgeProps {
   variant?: BadgeVariant
@@ -15,6 +15,7 @@ const badgeStyles: Record<BadgeVariant, string> = {
   pro: "bg-white text-black",
   business: "bg-amber-500 text-black",
   new: "bg-blue-500/10 text-blue-400",
+  warning: "bg-amber-500/10 text-amber-400",
 }
 
 export function DocumateBadge({ variant = "default", children, className }: DocumateBadgeProps) {

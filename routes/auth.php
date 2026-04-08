@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -33,6 +34,10 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // Social OAuth (add new providers to SocialAuthController::PROVIDERS + config/services.php)
+    Route::get('auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
+    Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 });
 
 Route::middleware('auth')->group(function () {

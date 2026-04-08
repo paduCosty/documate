@@ -50,6 +50,8 @@ export default function WordToPdfPage() {
       steps={steps}
       actionButtonText="Convert to PDF"
       outputFileName="document.pdf"
+      dropzoneText="Drop your Word documents here"
+      toolRoute="/tools/word-to-pdf"
     />
   )
 }

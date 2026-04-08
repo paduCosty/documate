@@ -10,20 +10,22 @@ use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
 {
-    /**
-     * Update the user's password.
-     */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
-        ]);
+        $user = $request->user();
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+        // Social-auth users have no current password
+        $rules = [
+            "password" => ["required", Password::defaults(), "confirmed"],
+        ];
+        if (!$user->social_provider) {
+            $rules["current_password"] = ["required", "current_password"];
+        }
 
-        return back();
+        $validated = $request->validate($rules);
+
+        $user->update(["password" => Hash::make($validated["password"])]);
+
+        return back()->with("status", "password-updated");
     }
 }

@@ -3,27 +3,32 @@
 import { useState } from "react"
 import { Link, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-
-import { ChevronDown, Menu, X, GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image } from "lucide-react"
+import { ChevronDown, Menu, X, GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image, Zap } from "lucide-react"
 import { Logo } from "./logo"
 import { cn } from "@/lib/utils"
 
 const tools = [
-  { name: "Merge PDF", description: "Combine multiple PDFs into one", icon: GitMerge, href: route('tools.merge-pdf') },
-  { name: "Compress PDF", description: "Reduce PDF file size", icon: Minimize2, href: route('tools.compress-pdf') },
-  { name: "Word to PDF", description: "Convert .doc/.docx to PDF", icon: FileText, href: route('tools.word-to-pdf') },
-  { name: "Excel to PDF", description: "Convert spreadsheets to PDF", icon: Table, href: route('tools.excel-to-pdf') },
-  { name: "PPT to PDF", description: "Convert presentations to PDF", icon: Presentation, href: route('tools.ppt-to-pdf') },
-  { name: "Split PDF", description: "Extract pages from PDF", icon: Scissors, href: route('tools.split-pdf') },
-  { name: "PDF to JPG", description: "Convert PDF to images", icon: Image, href: route('tools.pdf-to-jpg') },
+  { name: "Merge PDF",     description: "Combine multiple PDFs into one", icon: GitMerge,     href: route('tools.merge-pdf')    },
+  { name: "Compress PDF",  description: "Reduce PDF file size",           icon: Minimize2,    href: route('tools.compress-pdf') },
+  { name: "Word to PDF",   description: "Convert .doc/.docx to PDF",      icon: FileText,     href: route('tools.word-to-pdf')  },
+  { name: "Excel to PDF",  description: "Convert spreadsheets to PDF",    icon: Table,        href: route('tools.excel-to-pdf') },
+  { name: "PPT to PDF",    description: "Convert presentations to PDF",   icon: Presentation, href: route('tools.ppt-to-pdf')   },
+  { name: "Split PDF",     description: "Extract pages from PDF",         icon: Scissors,     href: route('tools.split-pdf')    },
+  { name: "PDF to JPG",    description: "Convert PDF to images",          icon: Image,        href: route('tools.pdf-to-jpg')   },
 ]
 
 export function Navbar() {
-  const [isToolsOpen, setIsToolsOpen] = useState(false)
+  const [isToolsOpen, setIsToolsOpen]       = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const { props } = usePage<{ auth?: { user?: { name: string; email: string; plan: "free" | "pro" | "business" } } }>()
-  const user = props?.auth?.user
+  const { props } = usePage<{
+    auth?: {
+      user?: { name: string; email: string }
+      creditBalance?: number
+    }
+  }>()
+  const user          = props?.auth?.user
+  const creditBalance = props?.auth?.creditBalance ?? 0
 
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-[#09090b]/80 backdrop-blur-xl">
@@ -32,7 +37,7 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setIsToolsOpen(true)}
             onMouseLeave={() => setIsToolsOpen(false)}
@@ -42,7 +47,6 @@ export function Navbar() {
               <ChevronDown className={cn("h-4 w-4 transition-transform duration-150", isToolsOpen && "rotate-180")} />
             </button>
 
-            {/* Tools Dropdown */}
             {isToolsOpen && (
               <div className="absolute left-1/2 top-full pt-2 -translate-x-1/2">
                 <div className="w-[480px] rounded-2xl border border-zinc-800 bg-zinc-900 p-4 shadow-[0_0_0_1px_#3f3f46,0_16px_48px_rgba(0,0,0,0.6)]">
@@ -75,7 +79,19 @@ export function Navbar() {
         </div>
 
         {/* Desktop CTA */}
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
+          {/* Credit balance pill — shown when logged in and has credits */}
+          {user && creditBalance > 0 && (
+            <Link
+              href="/pricing"
+              title="Buy more credits"
+              className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-500/20"
+            >
+              <Zap className="h-3 w-3" />
+              {creditBalance} credit{creditBalance !== 1 ? "s" : ""}
+            </Link>
+          )}
+
           {user ? (
             <Link
               href="/dashboard"
@@ -142,6 +158,17 @@ export function Navbar() {
               </Link>
             </div>
             <div className="space-y-2 border-t border-zinc-800 pt-4">
+              {/* Credit balance in mobile menu */}
+              {user && creditBalance > 0 && (
+                <Link
+                  href="/pricing"
+                  className="flex items-center gap-2 rounded-xl bg-amber-500/10 p-2 text-sm text-amber-400"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Zap className="h-4 w-4" />
+                  {creditBalance} credits remaining
+                </Link>
+              )}
               {user ? (
                 <Link
                   href="/dashboard"
