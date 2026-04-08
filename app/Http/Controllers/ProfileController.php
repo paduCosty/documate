@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    public function edit(Request $request): RedirectResponse
+    {
+        return redirect()->route('dashboard.settings');
+    }
+
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $request->user()->fill($request->validated());

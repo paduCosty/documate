@@ -11,15 +11,14 @@ use App\Http\Controllers\Tools\PdfToJpgController;
 use App\Http\Controllers\Tools\ToolStatusController;
 use App\Http\Controllers\UserFileController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Credits\CreditController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 
 
 Route::get('/contact', function () {
-    return Inertia::render('contact/page', [
-        'flash' => ['success' => session('success'), 'error' => session('error')],
-    ]);
+    return Inertia::render('contact/page');
 })->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
@@ -30,6 +29,10 @@ Route::get('/faq', function () {
 Route::get('/', function () {
     return Inertia::render('page');
 });
+
+Route::get('/about', function () {
+    return Inertia::render('about/page');
+})->name('about');
 
 // Tool process routes — open to guests and authenticated users
 Route::post('/tools/split-pdf', [SplitPdfController::class, 'process'])->name('tools.split-pdf.process');
@@ -101,17 +104,8 @@ Route::prefix('legal')->group(function () {
 
 
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('dashboard/page', [
-            'user' => auth()->user()
-        ]);
-    })->name('index');
     Route::get('/', [DashboardController::class, 'index'])->name('index');
 
-
-    Route::get('/analytics', function () {
-        return Inertia::render('dashboard/analytics/page');
-    })->name('analytics');
 
     Route::get('/settings', function (\Illuminate\Http\Request $req) {
         $user = $req->user();
@@ -127,14 +121,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
             ],
         ]);
     })->name('settings');
-
-    Route::get('/reports', function () {
-        return Inertia::render('dashboard/reports/page');
-    })->name('reports');
-
-    Route::get('/users', function () {
-        return Inertia::render('dashboard/users/page');
-    })->name('users');
 
     Route::get('/usage', function (\Illuminate\Http\Request $req) {
         $user   = $req->user();
@@ -213,9 +199,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->name('dashboard.')
         return Inertia::render('dashboard/files/page', ['files' => $files]);
     })->name('files');
 
-    Route::get('/billing', function () {
-        return Inertia::render('dashboard/billing/page');
-    })->name('billing');
 });
 
 Route::get('/pricing', [SubscriptionController::class, 'index'])->name('pricing');
@@ -244,5 +227,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// ── Credit packs (one-time purchase) ─────────────────────────────────────
+Route::post('/credits/checkout/{pack}', [CreditController::class, 'checkout'])->name('credits.checkout');
+Route::get('/credits/success', [CreditController::class, 'success'])->name('credits.success');
 
 require __DIR__ . '/auth.php';

@@ -23,48 +23,62 @@ class DashboardService
     private function getStats(User $user): array
     {
         $hasSubscription = $user->subscribed('default') && !$user->subscription('default')?->canceled();
-        
-        // Calculate daily operations used today
-        $dailyOperationsUsed = $user->files()
-            ->whereDate('created_at', today())
-            ->count();
-        
-        $dailyOperationsLimit = $hasSubscription ? null : 3; // 3 for free users, unlimited for pro
-        
+
         $totalStorageBytes = $user->files()->sum('input_size_bytes');
-        $storageLimitBytes = $hasSubscription ? 1073741824 : 104857600; // 1GB for Pro, 100MB for Free
-        $storageUsedMB = round($totalStorageBytes / 1048576, 1);
-        $storageLimitMB = $storageLimitBytes / 1048576;
+        $storageLimitBytes = $hasSubscription ? 1073741824 : 104857600; // 1 GB Pro, 100 MB Free
+        $storageUsedMB    = round($totalStorageBytes / 1048576, 1);
+        $storageLimitMB   = $storageLimitBytes / 1048576;
+
+        if ($hasSubscription) {
+            $opsValue   = 'Unlimited';
+            $opsSubtext = 'No limits';
+            $planValue  = 'Pro';
+            $planSub    = 'Active';
+            $planLink   = false;
+        } else {
+            // Free ops are tracked in DailyUsage, NOT by counting all files.
+            // Credit-paid ops do NOT increment DailyUsage, so this stays ≤ 3.
+            $freeOpsUsed  = $user->todayUsage()->operations_count ?? 0;
+            $freeOpsLimit = 3;
+            $freeRemain   = max(0, $freeOpsLimit - $freeOpsUsed);
+            $opsValue     = "{$freeOpsUsed} / {$freeOpsLimit}";
+            $opsSubtext   = $freeRemain > 0 ? "{$freeRemain} free remaining" : 'Using credits';
+
+            $hasCredits = $user->hasCredits();
+            $planValue  = $hasCredits ? 'Credits' : 'Free';
+            $planSub    = $hasCredits ? $user->creditBalance() . ' credits left' : 'Upgrade →';
+            $planLink   = !$hasCredits;
+        }
 
         return [
             [
-                'icon' => 'Zap',
-                'label' => "Operations today",
-                'value' => $hasSubscription ? "Unlimited" : "{$dailyOperationsUsed} / {$dailyOperationsLimit}",
-                'subtext' => $hasSubscription ? "No limits" : ($dailyOperationsLimit - $dailyOperationsUsed) . " remaining",
-                'color' => "text-zinc-600",
+                'icon'    => 'Zap',
+                'label'   => 'Operations today',
+                'value'   => $opsValue,
+                'subtext' => $opsSubtext,
+                'color'   => 'text-zinc-600',
             ],
             [
-                'icon' => 'Files',
-                'label' => "Files processed",
-                'value' => $user->files()->count(),
-                'subtext' => "this month",
-                'color' => "text-zinc-600",
+                'icon'    => 'Files',
+                'label'   => 'Files processed',
+                'value'   => $user->files()->count(),
+                'subtext' => 'this month',
+                'color'   => 'text-zinc-600',
             ],
             [
-                'icon' => 'HardDrive',
-                'label' => "Storage used",
-                'value' => $storageUsedMB . " MB",
+                'icon'    => 'HardDrive',
+                'label'   => 'Storage used',
+                'value'   => $storageUsedMB . ' MB',
                 'subtext' => "of {$storageLimitMB} MB",
-                'color' => "text-zinc-600",
+                'color'   => 'text-zinc-600',
             ],
             [
-                'icon' => 'CreditCard',
-                'label' => "Current plan",
-                'value' => $hasSubscription ? 'Pro' : 'Free',
-                'subtext' => $hasSubscription ? "Active" : "Upgrade →",
-                'isLink' => !$hasSubscription,
-                'color' => "text-zinc-600",
+                'icon'    => 'CreditCard',
+                'label'   => 'Current plan',
+                'value'   => $planValue,
+                'subtext' => $planSub,
+                'isLink'  => $planLink,
+                'color'   => 'text-zinc-600',
             ],
         ];
     }
@@ -91,12 +105,17 @@ class DashboardService
 
     private function getUsage(User $user): array
     {
-        // calculezi daily operations, storage etc.
+        $todayUsage  = $user->todayUsage();
+        $limits      = $user->currentPlanLimits();
+        $opsLimit    = $limits["operations_per_day"];
+        $dailyUsed   = $todayUsage->operations_count ?? 0;
+        $percentage  = $opsLimit > 0 ? min(round($dailyUsed / $opsLimit * 100), 100) : 0;
+
         return [
-            'daily_used' => 3,
-            'daily_limit' => 10,
-            'percentage' => 30,
-            'resets_at'  => 'midnight UTC',
+            "daily_used"  => $dailyUsed,
+            "daily_limit" => $opsLimit >= 999999 ? "∞" : $opsLimit,
+            "percentage"  => $percentage,
+            "resets_at"   => "midnight UTC",
         ];
     }
 

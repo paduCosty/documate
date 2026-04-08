@@ -14,12 +14,8 @@ const subjects = [
   { value: "feature",   label: "Feature request" },
 ]
 
-type PageProps = {
-  flash?: { success?: string; error?: string }
-}
-
 export default function ContactPage() {
-  const { flash = {} } = usePage<{ props: PageProps }>().props as unknown as PageProps
+  const { flash = {} } = usePage().props as any
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name:    "",

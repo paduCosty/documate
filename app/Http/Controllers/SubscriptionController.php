@@ -10,6 +10,7 @@ use App\Jobs\SplitPdfJob;
 use App\Models\User;
 use App\Models\UserFile;
 use App\Services\Guest\GuestService;
+use App\Services\Credits\CreditService;
 use App\Services\Subscription\PlanService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -24,13 +25,16 @@ class SubscriptionController extends Controller
 {
     public function __construct(
         private PlanService  $planService,
+        private CreditService $creditService,
         private GuestService $guests,
     ) {}
 
     public function index(): \Inertia\Response
     {
-        $plans = $this->planService->getAllPlans();
-        return Inertia::render('pricing/page', ['plans' => $plans]);
+        return Inertia::render('pricing/page', [
+            'plans'       => $this->planService->getAllPlans(),
+            'creditPacks' => $this->creditService->packs(),
+        ]);
     }
 
     // ── Checkout ─────────────────────────────────────────────────────────────
@@ -251,7 +255,7 @@ class SubscriptionController extends Controller
 
     public function cancel()
     {
-        return Inertia::render('dashboard/billing/page', ['cancelled' => true]);
+        return redirect()->route('billing')->with('info', 'Checkout was cancelled. No charge was made.');
     }
 
     public function cancelSubscription(Request $request)

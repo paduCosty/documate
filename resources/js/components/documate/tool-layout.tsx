@@ -172,7 +172,9 @@ export function ToolLayout({
       },
       onError: (errors) => {
         setToolState("idle");
-        setErrorMessage(errors.message || "An error occurred while processing your files.");
+        // errors is a field-keyed object from Laravel validation; grab the first message
+        const firstError = Object.values(errors)[0] as string | undefined;
+        setErrorMessage(firstError || "An error occurred while processing your files.");
       },
     });
   }, [files, toolRoute, toolName]);

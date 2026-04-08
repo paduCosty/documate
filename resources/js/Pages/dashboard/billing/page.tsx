@@ -37,7 +37,6 @@ type BillingPageProps = {
     features: string[]
     popular?: boolean
   }>
-  flash?: { success?: string; error?: string }
 }
 
 const PRO_YEARLY_PRICE_ID = "price_1THNL3PrtZkTUd5yZskTHj34"
@@ -51,7 +50,8 @@ const PRO_FEATURES = [
 ]
 
 export default function BillingPage() {
-  const { subscription, invoices = [], plans = [], flash = {} } = usePage().props as BillingPageProps
+  const { subscription, invoices = [], plans = [] } = usePage().props as BillingPageProps
+  const { flash = {} } = usePage().props as any
 
   const [billing, setBilling]     = useState<"monthly" | "yearly">("monthly")
   const [busy, setBusy]           = useState(false)
@@ -90,6 +90,11 @@ export default function BillingPage() {
         <h2 className="text-2xl font-semibold text-white">Billing</h2>
         <p className="mt-1 text-sm text-zinc-500">Manage your subscription and payment details.</p>
 
+        {flash.info && (
+          <div className="mt-4 rounded-xl border border-amber-700/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-300">
+            {flash.info}
+          </div>
+        )}
         {flash.success && (
           <div className="mt-4 rounded-xl border border-emerald-700/50 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-400">
             {flash.success}

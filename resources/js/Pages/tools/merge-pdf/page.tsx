@@ -45,7 +45,7 @@ export default function MergePdfPage() {
       toolDescription="Combine multiple PDF files into one document. Drag to reorder pages."
       acceptedFormats={[".pdf", "application/pdf"]}
       maxFiles={10}
-      maxSizeMB={100}
+      maxSizeMB={10}
       faqs={faqs}
       steps={steps}
       actionButtonText="Merge PDFs"

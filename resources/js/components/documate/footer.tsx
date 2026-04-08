@@ -14,8 +14,8 @@ const toolLinks = [
 
 const companyLinks = [
   { name: "About", href: "/about" },
-  { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/contact" },
+  { name: "FAQ", href: "/faq" },
 ]
 
 const legalLinks = [
