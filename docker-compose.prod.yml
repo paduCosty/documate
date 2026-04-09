@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ─────────────────────────────────────────────────────────────────────────────
 # PRODUCTION  (folosit de Coolify)
 # Variabilele de environment se seteaza in UI-ul Coolify, nu in .env

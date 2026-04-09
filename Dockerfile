@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+RUN mkdir -p node_modules/.vite-temp && chmod -R 777 node_modules/.vite-temp
 RUN npm run build
 
 # =============================================================================

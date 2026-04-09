@@ -1,10 +1,8 @@
-version: '3.8'
-
 # ─────────────────────────────────────────────────────────────────────────────
 # LOCAL DEVELOPMENT
 # Pornire: docker-compose up
 # Vite HMR rulează pe HOST: npm run dev (din /documate)
-# Backend:  http://localhost:8080
+# Backend:  http://documate.test  (via Traefik global pe reteaua "shared")
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -12,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: dev          # foloseste stage-ul de development
+      target: dev
     container_name: documate_app
     restart: unless-stopped
     env_file: .env
@@ -22,18 +20,26 @@ services:
       DB_HOST: db
       DB_PORT: 3306
     volumes:
-      - .:/var/www/html                                   # live code reload
-      - /var/www/html/vendor                              # vendor izolat in container
-      - documate_storage:/var/www/html/storage            # storage persistent
+      - .:/var/www/html
+      - /var/www/html/vendor
+      - documate_storage:/var/www/html/storage
       - documate_bootstrap:/var/www/html/bootstrap/cache
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+      - ~/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro
+      
     ports:
-      - "8080:80"      # Laravel
-      - "5174:5173"    # Vite HMR (npm run dev pe host)
+      - "5174:5173"    # Vite HMR
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.documate.rule=Host(`documate.test`)"
+      - "traefik.http.routers.documate.entrypoints=http"
+      - "traefik.http.services.documate.loadbalancer.server.port=80"
     depends_on:
       db:
         condition: service_healthy
     networks:
       - documate_net
+      - shared
 
   db:
     image: mysql:8.0
@@ -47,7 +53,7 @@ services:
     volumes:
       - documate_db:/var/lib/mysql
     ports:
-      - "3310:3306"    # acces direct din IDE/TablePlus
+      - "3310:3306"
     networks:
       - documate_net
     healthcheck:
@@ -64,3 +70,5 @@ volumes:
 networks:
   documate_net:
     driver: bridge
+  shared:
+    external: true
