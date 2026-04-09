@@ -44,15 +44,6 @@ services:
     networks:
       - internal
       - coolify
-    labels:
-      - traefik.enable=true
-      - 'traefik.http.routers.documate.rule=Host(`${APP_DOMAIN}`)'
-      - traefik.http.routers.documate.entrypoints=websecure
-      - traefik.http.routers.documate.tls.certresolver=letsencrypt
-      - traefik.http.services.documate.loadbalancer.server.port=80
-      - 'traefik.http.routers.documate-http.rule=Host(`${APP_DOMAIN}`)'
-      - traefik.http.routers.documate-http.entrypoints=web
-      - traefik.http.routers.documate-http.middlewares=https-redirect@docker
   db:
     image: 'mysql:8.0'
     restart: unless-stopped
