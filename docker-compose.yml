@@ -24,6 +24,9 @@ services:
       - /var/www/html/vendor
       - documate_storage:/var/www/html/storage
       - documate_bootstrap:/var/www/html/bootstrap/cache
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+      - ~/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro
+      
     ports:
       - "5174:5173"    # Vite HMR
     labels:
