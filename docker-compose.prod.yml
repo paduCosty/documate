@@ -8,72 +8,73 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: prod         # build complet: frontend + PHP optimizat
+      target: prod
     restart: unless-stopped
     environment:
       APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: ${APP_URL}
-      APP_KEY: ${APP_KEY}
-
+      APP_DEBUG: 'false'
+      APP_URL: '${APP_URL}'
+      APP_KEY: '${APP_KEY}'
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-
+      DB_DATABASE: '${DB_DATABASE}'
+      DB_USERNAME: '${DB_USERNAME}'
+      DB_PASSWORD: '${DB_PASSWORD}'
       QUEUE_CONNECTION: database
       SESSION_DRIVER: file
       CACHE_STORE: file
       LOG_CHANNEL: stderr
       LOG_LEVEL: error
-
-      STRIPE_KEY: ${STRIPE_KEY}
-      STRIPE_SECRET: ${STRIPE_SECRET}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-
-      MAIL_MAILER: ${MAIL_MAILER}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
-      MAIL_FROM_NAME: "Documate"
+      STRIPE_KEY: '${STRIPE_KEY}'
+      STRIPE_SECRET: '${STRIPE_SECRET}'
+      STRIPE_WEBHOOK_SECRET: '${STRIPE_WEBHOOK_SECRET}'
+      MAIL_MAILER: '${MAIL_MAILER}'
+      MAIL_HOST: '${MAIL_HOST}'
+      MAIL_PORT: '${MAIL_PORT}'
+      MAIL_USERNAME: '${MAIL_USERNAME}'
+      MAIL_PASSWORD: '${MAIL_PASSWORD}'
+      MAIL_FROM_ADDRESS: '${MAIL_FROM_ADDRESS}'
+      MAIL_FROM_NAME: Documate
     volumes:
-      - app_storage:/var/www/html/storage
+      - 'app_storage:/var/www/html/storage'
     depends_on:
       db:
         condition: service_healthy
     networks:
       - internal
-      - proxy
+      - coolify
     labels:
-      # ── Traefik SSL + routing ──────────────────────────────────────────────
-      - "traefik.enable=true"
-      - "traefik.http.routers.documate.rule=Host(`${APP_DOMAIN}`)"
-      - "traefik.http.routers.documate.entrypoints=websecure"
-      - "traefik.http.routers.documate.tls.certresolver=letsencrypt"
-      - "traefik.http.services.documate.loadbalancer.server.port=80"
-      # Redirect HTTP → HTTPS
-      - "traefik.http.routers.documate-http.rule=Host(`${APP_DOMAIN}`)"
-      - "traefik.http.routers.documate-http.entrypoints=web"
-      - "traefik.http.routers.documate-http.middlewares=https-redirect@docker"
-
+      - traefik.enable=true
+      - 'traefik.http.routers.documate.rule=Host(`${APP_DOMAIN}`)'
+      - traefik.http.routers.documate.entrypoints=websecure
+      - traefik.http.routers.documate.tls.certresolver=letsencrypt
+      - traefik.http.services.documate.loadbalancer.server.port=80
+      - 'traefik.http.routers.documate-http.rule=Host(`${APP_DOMAIN}`)'
+      - traefik.http.routers.documate-http.entrypoints=web
+      - traefik.http.routers.documate-http.middlewares=https-redirect@docker
   db:
-    image: mysql:8.0
+    image: 'mysql:8.0'
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_PASSWORD: '${DB_ROOT_PASSWORD}'
     volumes:
-      - app_db:/var/lib/mysql
+      - 'app_db:/var/lib/mysql'
     networks:
       - internal
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - '-h'
+        - localhost
+        - '-u'
+        - root
+        - '-p${DB_ROOT_PASSWORD}'
       interval: 10s
       timeout: 5s
       retries: 5
@@ -85,5 +86,5 @@ volumes:
 networks:
   internal:
     driver: bridge
-  proxy:
-    external: true   # reteaua Traefik gestionata de Coolify
+  coolify:
+    external: true
