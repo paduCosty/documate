@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Check, ShieldCheck, Zap, Star, Rocket } from "lucide-react"
 import { Link, router, usePage } from "@inertiajs/react"
+import { SEOHead } from "@/components/documate/seo-head"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
 import { DocumateCard } from "@/components/documate/documate-card"
@@ -106,6 +107,11 @@ export default function PricingPage({ plans, creditPacks }: Props) {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Pricing — Documate"
+        description="Free and Pro plans for Documate PDF tools. Start free with 3 operations per day. Upgrade for unlimited access and larger file sizes."
+        canonical="https://documate.nexkit.app/pricing"
+      />
       <Navbar />
 
       <main className="px-6 py-24">

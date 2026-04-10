@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { router, Link } from "@inertiajs/react";
+import { SEOHead } from "./seo-head";
 
 import { Upload, X, Zap, GripVertical, FileText, CheckCircle2, Download, Lock } from "lucide-react";
 import { Navbar } from "./navbar";
@@ -186,8 +187,15 @@ export function ToolLayout({
     setErrorMessage(null);
   }, []);
 
+  const siteUrl = 'https://documate.nexkit.app'
+
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title={`${toolName} Online Free — Documate`}
+        description={toolDescription}
+        canonical={`${siteUrl}${toolRoute}`}
+      />
       <Navbar />
 
       <main className="mx-auto max-w-2xl px-6 py-16">

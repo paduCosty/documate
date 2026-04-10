@@ -1,4 +1,5 @@
 import { useForm, usePage } from "@inertiajs/react"
+import { SEOHead } from "@/components/documate/seo-head"
 import { Mail, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
@@ -33,6 +34,11 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Contact — Documate"
+        description="Get in touch with the Documate team. We'd love to hear your feedback or answer your questions."
+        canonical="https://documate.nexkit.app/contact"
+      />
       <Navbar />
 
       <main className="mx-auto max-w-4xl px-6 py-24">

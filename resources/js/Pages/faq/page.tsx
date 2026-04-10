@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Search } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
+import { SEOHead } from "@/components/documate/seo-head"
 import { Footer } from "@/components/documate/footer"
 import {
   Accordion,
@@ -44,6 +45,11 @@ export default function FaqPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="FAQ — Documate"
+        description="Frequently asked questions about Documate PDF tools, pricing, file security, and usage limits."
+        canonical="https://documate.nexkit.app/faq"
+      />
       <Navbar />
 
       <main className="mx-auto max-w-3xl px-6 py-24">

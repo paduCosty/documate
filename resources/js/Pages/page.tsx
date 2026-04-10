@@ -1,4 +1,5 @@
 import {Link} from "@inertiajs/react";
+import { SEOHead } from "@/components/documate/seo-head";
 import { GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image, ShieldCheck, Clock, Zap, Check, Star } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
@@ -31,6 +32,11 @@ const testimonials = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Documate — Free Online PDF Tools"
+        description="Merge, compress, split, and convert PDF files online for free. Fast, secure, no registration required. Files auto-deleted in 24 hours."
+        canonical="https://documate.nexkit.app"
+      />
       <Navbar />
 
       {/* Hero Section */}

@@ -13,9 +13,45 @@ use App\Http\Controllers\UserFileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Credits\CreditController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Response;
 use Inertia\Inertia;
 
 
+
+Route::get('/sitemap.xml', function () {
+    $base = 'https://documate.nexkit.app';
+    $now  = now()->toAtomString();
+
+    $urls = [
+        ['loc' => $base,                        'priority' => '1.00', 'freq' => 'weekly'],
+        ['loc' => "$base/tools",                'priority' => '0.90', 'freq' => 'weekly'],
+        ['loc' => "$base/tools/merge-pdf",      'priority' => '0.90', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/compress-pdf",   'priority' => '0.90', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/split-pdf",      'priority' => '0.90', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/word-to-pdf",    'priority' => '0.85', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/excel-to-pdf",   'priority' => '0.85', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/ppt-to-pdf",     'priority' => '0.85', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/pdf-to-jpg",     'priority' => '0.85', 'freq' => 'monthly'],
+        ['loc' => "$base/pricing",              'priority' => '0.70', 'freq' => 'monthly'],
+        ['loc' => "$base/about",                'priority' => '0.50', 'freq' => 'yearly'],
+        ['loc' => "$base/faq",                  'priority' => '0.60', 'freq' => 'monthly'],
+        ['loc' => "$base/contact",              'priority' => '0.40', 'freq' => 'yearly'],
+    ];
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    foreach ($urls as $url) {
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$url['loc']}</loc>\n";
+        $xml .= "    <lastmod>{$now}</lastmod>\n";
+        $xml .= "    <changefreq>{$url['freq']}</changefreq>\n";
+        $xml .= "    <priority>{$url['priority']}</priority>\n";
+        $xml .= "  </url>\n";
+    }
+    $xml .= '</urlset>';
+
+    return Response::make($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
 
 Route::get('/contact', function () {
     return Inertia::render('contact/page');

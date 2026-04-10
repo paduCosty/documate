@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Link } from "@inertiajs/react"
+import { SEOHead } from "@/components/documate/seo-head"
 import { Search, GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
@@ -79,6 +80,11 @@ export default function ToolsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="All PDF Tools — Documate"
+        description="Browse all free online PDF tools: merge, compress, split PDFs, convert Word, Excel, PowerPoint to PDF, and PDF to JPG."
+        canonical="https://documate.nexkit.app/tools"
+      />
       <Navbar />
 
       <main className="mx-auto max-w-6xl px-6 py-16">

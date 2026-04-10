@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /dashboard
+Disallow: /status/
+Disallow: /tools/download/
+Disallow: /profile
+
+Sitemap: https://documate.nexkit.app/sitemap.xml

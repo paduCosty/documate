@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react"
+import { SEOHead } from "@/components/documate/seo-head"
 import { Shield, Zap, Globe, Lock } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
@@ -30,6 +31,11 @@ const values = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="About — Documate"
+        description="Documate is a fast, secure, and free online PDF toolkit built for teams and individuals. No registration required."
+        canonical="https://documate.nexkit.app/about"
+      />
       <Navbar />
 
       <main>
