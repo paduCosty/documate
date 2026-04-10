@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { router, Link } from "@inertiajs/react";
+import { router, Link, usePage } from "@inertiajs/react";
 import { SEOHead } from "./seo-head";
 
 import { Upload, X, Zap, GripVertical, FileText, CheckCircle2, Download, Lock } from "lucide-react";
@@ -66,6 +66,9 @@ export function ToolLayout({
   dropzoneText = "Drop your files here",
   toolRoute,
 }: ToolLayoutProps) {
+  const { auth } = usePage().props as any
+  const isLoggedIn = !!auth?.user
+
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
@@ -215,10 +218,25 @@ export function ToolLayout({
             <div className="flex items-center gap-2">
               <Zap className="h-3.5 w-3.5 text-amber-400" />
               <span className="text-sm text-zinc-400">
-                Using 1 of 3 free daily operations.{" "}
-                <Link href="/register" className="text-white underline underline-offset-2 hover:no-underline">
-                  Create a free account for 10/day →
-                </Link>
+                {isLoggedIn ? (
+                  <>
+                    3 free operations per day.{" "}
+                    <Link href="/pricing" className="text-white underline underline-offset-2 hover:no-underline">
+                      Upgrade to Pro for unlimited →
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    3 free operations per day.{" "}
+                    <Link href="/register" className="text-white underline underline-offset-2 hover:no-underline">
+                      Sign up free
+                    </Link>
+                    {" · "}
+                    <Link href="/pricing" className="text-white underline underline-offset-2 hover:no-underline">
+                      Go Pro for unlimited →
+                    </Link>
+                  </>
+                )}
               </span>
             </div>
             <button
