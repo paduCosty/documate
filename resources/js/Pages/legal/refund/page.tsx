@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
 import { Link } from "@inertiajs/react"
+import { SEOHead } from "@/components/documate/seo-head"
 
 const sections = [
   {
@@ -32,6 +33,11 @@ const sections = [
 export default function RefundPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Refund Policy — Documate"
+        description="Documate offers a 30-day money-back guarantee on all Pro subscriptions. Read our full refund policy for subscriptions and credit packs."
+        canonical="https://documate.nexkit.app/legal/refund"
+      />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">
         <div className="mb-12">

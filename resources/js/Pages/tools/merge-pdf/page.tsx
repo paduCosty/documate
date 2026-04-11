@@ -42,7 +42,7 @@ export default function MergePdfPage() {
   return (
     <ToolLayout
       toolName="Merge PDF"
-      toolDescription="Combine multiple PDF files into one document. Drag to reorder pages."
+      toolDescription="Combine multiple PDF files into one document online for free. Drag to reorder files before merging. No signup required. Files deleted after 24 hours."
       acceptedFormats={[".pdf", "application/pdf"]}
       maxFiles={10}
       maxSizeMB={10}

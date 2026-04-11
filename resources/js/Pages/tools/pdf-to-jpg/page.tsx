@@ -42,7 +42,7 @@ export default function PdfToJpgPage() {
   return (
     <ToolLayout
       toolName="PDF to JPG"
-      toolDescription="Convert each PDF page into a high-quality JPG image."
+      toolDescription="Convert PDF pages to high-quality JPG images online for free. Each page becomes a separate image at 300 DPI. Download all images as a ZIP file."
       acceptedFormats={[".pdf", "application/pdf"]}
       maxSizeMB={10}
       faqs={faqs}

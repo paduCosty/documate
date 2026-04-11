@@ -42,7 +42,7 @@ export default function WordToPdfPage() {
   return (
     <ToolLayout
       toolName="Word to PDF"
-      toolDescription="Convert .doc and .docx files to PDF instantly with perfect formatting."
+      toolDescription="Convert Word documents (.doc, .docx) to PDF online for free. Perfect formatting preserved — fonts, images, tables. Fast conversion, no software needed."
       acceptedFormats={[".doc", ".docx", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]}
       maxFiles={10}
       maxSizeMB={10}

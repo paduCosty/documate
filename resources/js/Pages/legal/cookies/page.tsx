@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
+import { SEOHead } from "@/components/documate/seo-head"
 
 const cookies = [
   {
@@ -31,6 +32,11 @@ const cookies = [
 export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Cookie Policy — Documate"
+        description="Documate uses only essential cookies to maintain your login session. No advertising or tracking cookies. Read our full cookie policy."
+        canonical="https://documate.nexkit.app/legal/cookies"
+      />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">
         <div className="mb-12">

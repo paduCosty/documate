@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
+import { SEOHead } from "@/components/documate/seo-head"
 
 const sections = [
   {
@@ -51,6 +52,11 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Privacy Policy — Documate"
+        description="Learn how Documate protects your privacy. Uploaded files are auto-deleted within 24 hours. No ads, no tracking, fully GDPR compliant."
+        canonical="https://documate.nexkit.app/legal/privacy"
+      />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">
         <div className="mb-12">

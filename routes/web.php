@@ -36,6 +36,10 @@ Route::get('/sitemap.xml', function () {
         ['loc' => "$base/about",                'priority' => '0.50', 'freq' => 'yearly'],
         ['loc' => "$base/faq",                  'priority' => '0.60', 'freq' => 'monthly'],
         ['loc' => "$base/contact",              'priority' => '0.40', 'freq' => 'yearly'],
+        ['loc' => "$base/legal/terms",          'priority' => '0.20', 'freq' => 'yearly'],
+        ['loc' => "$base/legal/privacy",        'priority' => '0.20', 'freq' => 'yearly'],
+        ['loc' => "$base/legal/cookies",        'priority' => '0.20', 'freq' => 'yearly'],
+        ['loc' => "$base/legal/refund",         'priority' => '0.20', 'freq' => 'yearly'],
     ];
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";

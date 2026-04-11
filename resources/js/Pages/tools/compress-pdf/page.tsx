@@ -38,7 +38,7 @@ export default function CompressPdfPage() {
   return (
     <ToolLayout
       toolName="Compress PDF"
-      toolDescription="Reduce PDF file size without losing quality. See before and after sizes."
+      toolDescription="Reduce your PDF file size online without losing quality. Smart compression preserves text clarity and images. Free, fast, and no software needed."
       acceptedFormats={[".pdf", "application/pdf"]}
       maxFiles={1}
       maxSizeMB={10}

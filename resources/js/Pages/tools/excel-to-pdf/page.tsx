@@ -42,7 +42,7 @@ export default function ExcelToPdfPage() {
   return (
     <ToolLayout
       toolName="Excel to PDF"
-      toolDescription="Turn spreadsheets into perfectly formatted PDF documents."
+      toolDescription="Convert Excel spreadsheets (.xls, .xlsx) to PDF online for free. All sheets, charts, and formatting preserved. No software or Excel license required."
       acceptedFormats={[".xls", ".xlsx", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]}
       maxFiles={10}
       maxSizeMB={10}

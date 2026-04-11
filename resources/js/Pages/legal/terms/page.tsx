@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
+import { SEOHead } from "@/components/documate/seo-head"
 
 const sections = [
   {
@@ -55,6 +56,11 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Terms of Service — Documate"
+        description="Read Documate's Terms of Service. Learn about acceptable use, subscriptions, file privacy, and your rights when using our online PDF tools."
+        canonical="https://documate.nexkit.app/legal/terms"
+      />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">
         <div className="mb-12">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { router, Link } from "@inertiajs/react";
+import { router, Link, usePage } from "@inertiajs/react";
+import { SEOHead } from "@/components/documate/seo-head";
 import {
   Upload, X, Zap, GripVertical, FileText, Scissors,
   RotateCcw, Trash2, ChevronRight, HelpCircle, Move,
@@ -206,6 +207,9 @@ const steps = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SplitPdfPage() {
+  const { auth } = usePage().props as any
+  const isLoggedIn = !!auth?.user
+
   const [appState, setAppState] = useState<AppState>("idle");
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
@@ -340,6 +344,11 @@ export default function SplitPdfPage() {
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-zinc-950">
+      <SEOHead
+        title="Split PDF Online Free — Documate"
+        description="Split and rearrange PDF pages visually. Remove, reorder, or group pages, then download each group as a separate PDF. Free, fast, no software needed."
+        canonical="https://documate.nexkit.app/tools/split-pdf"
+      />
       <Navbar />
 
       {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
@@ -358,8 +367,19 @@ export default function SplitPdfPage() {
               <div className="flex items-center gap-2">
                 <Zap className="h-3.5 w-3.5 text-amber-400" />
                 <span className="text-sm text-zinc-400">
-                  Using 1 of 3 free daily operations.{" "}
-                  <Link href="/register" className="text-white underline underline-offset-2 hover:no-underline">Create a free account for 10/day →</Link>
+                  {isLoggedIn ? (
+                    <>
+                      3 free operations per day.{" "}
+                      <Link href="/pricing" className="text-white underline underline-offset-2 hover:no-underline">Upgrade to Pro for unlimited →</Link>
+                    </>
+                  ) : (
+                    <>
+                      3 free operations per day.{" "}
+                      <Link href="/register" className="text-white underline underline-offset-2 hover:no-underline">Sign up free</Link>
+                      {" · "}
+                      <Link href="/pricing" className="text-white underline underline-offset-2 hover:no-underline">Go Pro for unlimited →</Link>
+                    </>
+                  )}
                 </span>
               </div>
               <button onClick={() => setShowBanner(false)} className="rounded-lg p-1 text-zinc-600 transition-colors hover:bg-zinc-700 hover:text-white"><X className="h-4 w-4" /></button>

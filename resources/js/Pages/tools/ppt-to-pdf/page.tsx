@@ -42,7 +42,7 @@ export default function PptToPdfPage() {
   return (
     <ToolLayout
       toolName="PPT to PDF"
-      toolDescription="Convert PowerPoint presentations to PDF with all slides intact."
+      toolDescription="Convert PowerPoint presentations (.ppt, .pptx) to PDF online for free. Every slide converted at high resolution. No software installation needed."
       acceptedFormats={[".ppt", ".pptx", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation"]}
       maxFiles={10}
       maxSizeMB={10}
