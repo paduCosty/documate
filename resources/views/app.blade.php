@@ -27,17 +27,6 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Google Analytics -->
-        @if(env('GA_ID'))
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ env('GA_ID') }}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '{{ env('GA_ID') }}');
-        </script>
-        @endif
-
         <!-- Scripts -->
         @routes
         @viteReactRefresh
