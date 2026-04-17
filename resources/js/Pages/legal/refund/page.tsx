@@ -3,6 +3,8 @@ import { Footer } from "@/components/documate/footer"
 import { Link } from "@inertiajs/react"
 import { SEOHead } from "@/components/documate/seo-head"
 
+const MAIL_SUPPORT = import.meta.env.VITE_MAIL_SUPPORT as string || 'support@documate.nexkit.app'
+
 const sections = [
   {
     title: "30-Day Money-Back Guarantee",
@@ -22,7 +24,7 @@ const sections = [
   },
   {
     title: "How to Request a Refund",
-    content: `Email us at support@documate.io with the subject "Refund Request" and include the email address associated with your account. We aim to process all refund requests within 3 business days. Refunds are issued to the original payment method.`,
+    content: `Email us at ${MAIL_SUPPORT} with the subject "Refund Request" and include the email address associated with your account. We aim to process all refund requests within 3 business days. Refunds are issued to the original payment method.`,
   },
   {
     title: "Exceptions",
@@ -36,7 +38,7 @@ export default function RefundPage() {
       <SEOHead
         title="Refund Policy — Documate"
         description="Documate offers a 30-day money-back guarantee on all Pro subscriptions. Read our full refund policy for subscriptions and credit packs."
-        canonical="https://documate.nexkit.app/legal/refund"
+        canonical="/legal/refund"
       />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">

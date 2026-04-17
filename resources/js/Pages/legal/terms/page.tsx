@@ -2,6 +2,9 @@ import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
 import { SEOHead } from "@/components/documate/seo-head"
 
+const MAIL_SUPPORT = import.meta.env.VITE_MAIL_SUPPORT as string || 'support@documate.nexkit.app'
+const MAIL_LEGAL = import.meta.env.VITE_MAIL_LEGAL as string || 'legal@documate.nexkit.app'
+
 const sections = [
   {
     title: "1. Acceptance of Terms",
@@ -29,7 +32,7 @@ const sections = [
   },
   {
     title: "7. Refunds",
-    content: `We offer a 30-day money-back guarantee on Pro subscriptions. Credit packs are non-refundable once any credits have been used. To request a refund, contact us at support@documate.io within 30 days of your purchase.`,
+    content: `We offer a 30-day money-back guarantee on Pro subscriptions. Credit packs are non-refundable once any credits have been used. To request a refund, contact us at ${MAIL_SUPPORT} within 30 days of your purchase.`,
   },
   {
     title: "8. Intellectual Property",
@@ -49,7 +52,7 @@ const sections = [
   },
   {
     title: "12. Contact",
-    content: `For questions about these Terms, contact us at legal@documate.io or through our Contact page.`,
+    content: `For questions about these Terms, contact us at ${MAIL_LEGAL} or through our Contact page.`,
   },
 ]
 
@@ -59,7 +62,7 @@ export default function TermsPage() {
       <SEOHead
         title="Terms of Service — Documate"
         description="Read Documate's Terms of Service. Learn about acceptable use, subscriptions, file privacy, and your rights when using our online PDF tools."
-        canonical="https://documate.nexkit.app/legal/terms"
+        canonical="/legal/terms"
       />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">

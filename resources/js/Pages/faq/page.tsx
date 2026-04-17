@@ -48,7 +48,7 @@ export default function FaqPage() {
       <SEOHead
         title="FAQ — Documate"
         description="Frequently asked questions about Documate PDF tools, pricing, file security, and usage limits."
-        canonical="https://documate.nexkit.app/faq"
+        canonical="/faq"
       />
       <Navbar />
 

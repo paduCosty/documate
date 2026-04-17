@@ -110,7 +110,7 @@ export default function PricingPage({ plans, creditPacks }: Props) {
       <SEOHead
         title="Pricing — Documate"
         description="Free and Pro plans for Documate PDF tools. Start free with 3 operations per day. Upgrade for unlimited access and larger file sizes."
-        canonical="https://documate.nexkit.app/pricing"
+        canonical="/pricing"
       />
       <Navbar />
 

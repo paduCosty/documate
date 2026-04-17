@@ -3,6 +3,8 @@ import { SEOHead } from "@/components/documate/seo-head"
 import { Mail, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
+
+const MAIL_SUPPORT = import.meta.env.VITE_MAIL_SUPPORT as string || 'support@documate.nexkit.app'
 import { DocumateCard } from "@/components/documate/documate-card"
 import { DocumateBadge } from "@/components/documate/documate-badge"
 import { DocumateInput } from "@/components/documate/documate-input"
@@ -37,7 +39,7 @@ export default function ContactPage() {
       <SEOHead
         title="Contact — Documate"
         description="Get in touch with the Documate team. We'd love to hear your feedback or answer your questions."
-        canonical="https://documate.nexkit.app/contact"
+        canonical="/contact"
       />
       <Navbar />
 
@@ -113,7 +115,7 @@ export default function ContactPage() {
           <DocumateCard className="h-fit space-y-6">
             <div className="flex items-start gap-3">
               <Mail className="mt-0.5 h-5 w-5 text-zinc-500" />
-              <span className="text-sm text-white">support@documate.io</span>
+              <span className="text-sm text-white">{MAIL_SUPPORT}</span>
             </div>
             <div className="flex items-start gap-3">
               <Clock className="mt-0.5 h-5 w-5 text-zinc-500" />

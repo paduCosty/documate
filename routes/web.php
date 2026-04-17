@@ -19,7 +19,7 @@ use Inertia\Inertia;
 
 
 Route::get('/sitemap.xml', function () {
-    $base = 'https://documate.nexkit.app';
+    $base = rtrim(config('app.url'), '/');
     $now  = now()->toAtomString();
 
     $urls = [

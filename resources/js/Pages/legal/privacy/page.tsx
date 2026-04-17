@@ -2,6 +2,8 @@ import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
 import { SEOHead } from "@/components/documate/seo-head"
 
+const MAIL_PRIVACY = import.meta.env.VITE_MAIL_PRIVACY as string || 'privacy@documate.nexkit.app'
+
 const sections = [
   {
     title: "1. Who We Are",
@@ -33,7 +35,7 @@ const sections = [
   },
   {
     title: "8. Your Rights (GDPR)",
-    content: `If you are located in the EEA, you have the right to: access the personal data we hold about you; request correction of inaccurate data; request deletion of your data; object to or restrict certain processing; request data portability; withdraw consent at any time. To exercise these rights, contact us at privacy@documate.io.`,
+    content: `If you are located in the EEA, you have the right to: access the personal data we hold about you; request correction of inaccurate data; request deletion of your data; object to or restrict certain processing; request data portability; withdraw consent at any time. To exercise these rights, contact us at ${MAIL_PRIVACY}.`,
   },
   {
     title: "9. Security",
@@ -45,7 +47,7 @@ const sections = [
   },
   {
     title: "11. Contact",
-    content: `For privacy-related questions or to exercise your rights, contact us at privacy@documate.io or through our Contact page.`,
+    content: `For privacy-related questions or to exercise your rights, contact us at ${MAIL_PRIVACY} or through our Contact page.`,
   },
 ]
 
@@ -55,7 +57,7 @@ export default function PrivacyPage() {
       <SEOHead
         title="Privacy Policy — Documate"
         description="Learn how Documate protects your privacy. Uploaded files are auto-deleted within 24 hours. No ads, no tracking, fully GDPR compliant."
-        canonical="https://documate.nexkit.app/legal/privacy"
+        canonical="/legal/privacy"
       />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">

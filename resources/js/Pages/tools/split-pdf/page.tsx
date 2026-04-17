@@ -347,7 +347,7 @@ export default function SplitPdfPage() {
       <SEOHead
         title="Split PDF Online Free — Documate"
         description="Split and rearrange PDF pages visually. Remove, reorder, or group pages, then download each group as a separate PDF. Free, fast, no software needed."
-        canonical="https://documate.nexkit.app/tools/split-pdf"
+        canonical="/tools/split-pdf"
       />
       <Navbar />
 

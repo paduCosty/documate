@@ -83,7 +83,7 @@ export default function ToolsPage() {
       <SEOHead
         title="All PDF Tools — Documate"
         description="Browse all free online PDF tools: merge, compress, split PDFs, convert Word, Excel, PowerPoint to PDF, and PDF to JPG."
-        canonical="https://documate.nexkit.app/tools"
+        canonical="/tools"
       />
       <Navbar />
 

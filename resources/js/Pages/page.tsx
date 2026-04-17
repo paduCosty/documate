@@ -35,7 +35,7 @@ export default function HomePage() {
       <SEOHead
         title="Documate — Free Online PDF Tools"
         description="Merge, compress, split, and convert PDF files online for free. Fast, secure, no registration required. Files auto-deleted in 24 hours."
-        canonical="https://documate.nexkit.app"
+        canonical="/"
       />
       <Navbar />
 

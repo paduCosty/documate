@@ -190,7 +190,7 @@ export function ToolLayout({
     setErrorMessage(null);
   }, []);
 
-  const siteUrl = 'https://documate.nexkit.app'
+  const siteUrl = (import.meta.env.VITE_APP_URL as string || 'https://ocumate.nexkit.app').replace(/\/$/, '')
 
   return (
     <div className="min-h-screen bg-zinc-950">

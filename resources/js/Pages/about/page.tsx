@@ -34,7 +34,7 @@ export default function AboutPage() {
       <SEOHead
         title="About — Documate"
         description="Documate is a fast, secure, and free online PDF toolkit built for teams and individuals. No registration required."
-        canonical="https://documate.nexkit.app/about"
+        canonical="/about"
       />
       <Navbar />
 

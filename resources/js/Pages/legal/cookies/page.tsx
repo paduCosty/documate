@@ -2,6 +2,8 @@ import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
 import { SEOHead } from "@/components/documate/seo-head"
 
+const MAIL_PRIVACY = import.meta.env.VITE_MAIL_PRIVACY as string || 'privacy@documate.nexkit.app'
+
 const cookies = [
   {
     name: "Session cookie",
@@ -35,7 +37,7 @@ export default function CookiesPage() {
       <SEOHead
         title="Cookie Policy — Documate"
         description="Documate uses only essential cookies to maintain your login session. No advertising or tracking cookies. Read our full cookie policy."
-        canonical="https://documate.nexkit.app/legal/cookies"
+        canonical="/legal/cookies"
       />
       <Navbar />
       <main className="mx-auto max-w-3xl px-6 py-20">
@@ -97,7 +99,7 @@ export default function CookiesPage() {
           <section>
             <h2 className="text-base font-semibold text-white">Contact</h2>
             <p className="mt-2">
-              Questions about our cookie usage? Contact us at privacy@documate.io.
+              Questions about our cookie usage? Contact us at {MAIL_PRIVACY}.
             </p>
           </section>
         </div>
