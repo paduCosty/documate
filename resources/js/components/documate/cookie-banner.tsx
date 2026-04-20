@@ -17,6 +17,12 @@ function loadGA(id: string) {
     gtag('config', id, { send_page_view: false })
     ;(window as any).gtag = gtag
 
+    // Send pageview for the initial page load
+    gtag('event', 'page_view', {
+        page_path: window.location.pathname + window.location.search,
+        page_title: document.title,
+    })
+
     router.on('navigate', (event) => {
         gtag('event', 'page_view', {
             page_path: event.detail.page.url,
