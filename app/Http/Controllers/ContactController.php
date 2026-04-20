@@ -25,7 +25,7 @@ class ContactController extends Controller
             "message" => ["required", "string", "min:10", "max:2000"],
         ]);
 
-        Mail::to(config("mail.from.address"))
+        Mail::to(config("mail.contact_address", config("mail.from.address")))
             ->send(new ContactMail(
                 senderName:     $data["name"],
                 senderEmail:    $data["email"],
