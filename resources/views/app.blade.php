@@ -24,14 +24,7 @@
         <link rel="icon" type="image/x-icon" href="/favicon.ico">
         <link rel="shortcut icon" href="/favicon.ico">
 
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": "Documate",
-            "url": "{{ config('app.url') }}"
-        }
-        </script>
+        <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => 'Documate', 'url' => config('app.url')]) !!}</script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
