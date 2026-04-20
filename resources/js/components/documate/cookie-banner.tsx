@@ -43,6 +43,11 @@ export function CookieBanner() {
         localStorage.setItem(CONSENT_KEY, 'accepted')
         setVisible(false)
         loadGA(GA_ID)
+        // navigate event won't fire for current page, so track it manually
+        ;(window as any).gtag?.('event', 'page_view', {
+            page_path: window.location.pathname + window.location.search,
+            page_title: document.title,
+        })
     }
 
     function decline() {
