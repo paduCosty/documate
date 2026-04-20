@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { router } from '@inertiajs/react'
 
 const CONSENT_KEY = 'cookie_consent'
-const GA_ID = import.meta.env.VITE_GA_ID as string | undefined
+const GA_ID: string = (import.meta.env.VITE_GA_ID as string) || 'G-36D54FFH27'
 
 function loadGA(id: string) {
     if (document.getElementById('ga-script')) return
@@ -30,7 +30,7 @@ export function CookieBanner() {
 
     useEffect(() => {
         const consent = localStorage.getItem(CONSENT_KEY)
-        if (consent === 'accepted' && GA_ID) {
+        if (consent === 'accepted') {
             loadGA(GA_ID)
         } else if (!consent) {
             setVisible(true)
@@ -40,7 +40,7 @@ export function CookieBanner() {
     function accept() {
         localStorage.setItem(CONSENT_KEY, 'accepted')
         setVisible(false)
-        if (GA_ID) loadGA(GA_ID)
+        loadGA(GA_ID)
     }
 
     function decline() {
