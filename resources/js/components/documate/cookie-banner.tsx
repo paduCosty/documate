@@ -6,21 +6,28 @@ const GA_ID: string = (import.meta.env.VITE_GA_ID as string) || 'G-36D54FFH27'
 
 function loadGA(id: string) {
     if (document.getElementById('ga-script')) return
+
+    // Standard Google gtag pattern — must use `arguments`, not spread
+    window.dataLayer = window.dataLayer || []
+    /* eslint-disable prefer-rest-params */
+    function gtag() { (window.dataLayer as any[]).push(arguments) }
+    /* eslint-enable prefer-rest-params */
+    ;(window as any).gtag = gtag
+
+    gtag('js', new Date())
+    gtag('config', id)  // send_page_view defaults to true — tracks current page
+
     const s = document.createElement('script')
     s.id = 'ga-script'
     s.async = true
     s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`
     document.head.appendChild(s)
-    window.dataLayer = window.dataLayer || []
-    function gtag(...args: any[]) { window.dataLayer.push(args) }
-    gtag('js', new Date())
-    gtag('config', id, { send_page_view: false })
-    ;(window as any).gtag = gtag
 
-    router.on('navigate', (event) => {
+    // Track subsequent SPA navigations
+    router.on('navigate', () => {
         setTimeout(() => {
-            gtag('event', 'page_view', {
-                page_path: event.detail.page.url,
+            ;(window as any).gtag('config', id, {
+                page_location: window.location.href,
                 page_title: document.title,
             })
         }, 100)
@@ -43,11 +50,6 @@ export function CookieBanner() {
         localStorage.setItem(CONSENT_KEY, 'accepted')
         setVisible(false)
         loadGA(GA_ID)
-        // navigate event won't fire for current page, so track it manually
-        ;(window as any).gtag?.('event', 'page_view', {
-            page_path: window.location.pathname + window.location.search,
-            page_title: document.title,
-        })
     }
 
     function decline() {
