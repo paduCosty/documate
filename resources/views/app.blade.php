@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="google-site-verification" content="Px390XkFbxG-W51VRk9Y64jE0m-NkNE4nrpjgr3kj6o" />
 
         <title inertia>{{ config('app.name', 'Documate') }}</title>
 
