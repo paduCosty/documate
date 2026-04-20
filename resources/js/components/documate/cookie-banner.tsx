@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { router } from '@inertiajs/react'
 
 const CONSENT_KEY = 'cookie_consent'
 const GA_ID = import.meta.env.VITE_GA_ID as string | undefined
@@ -13,8 +14,15 @@ function loadGA(id: string) {
     window.dataLayer = window.dataLayer || []
     function gtag(...args: any[]) { window.dataLayer.push(args) }
     gtag('js', new Date())
-    gtag('config', id)
+    gtag('config', id, { send_page_view: false })
     ;(window as any).gtag = gtag
+
+    router.on('navigate', (event) => {
+        gtag('event', 'page_view', {
+            page_path: event.detail.page.url,
+            page_title: document.title,
+        })
+    })
 }
 
 export function CookieBanner() {
