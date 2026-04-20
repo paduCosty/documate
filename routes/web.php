@@ -272,7 +272,4 @@ Route::middleware('auth')->group(function () {
 Route::post('/credits/checkout/{pack}', [CreditController::class, 'checkout'])->name('credits.checkout');
 Route::get('/credits/success', [CreditController::class, 'success'])->name('credits.success');
 
-// Stripe webhooks — excluded from CSRF in bootstrap/app.php
-Route::cashierWebhooks('/stripe/webhook');
-
 require __DIR__ . '/auth.php';
