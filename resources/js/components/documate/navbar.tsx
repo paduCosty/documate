@@ -8,13 +8,14 @@ import { Logo } from "./logo"
 import { cn } from "@/lib/utils"
 
 const tools = [
-  { name: "Merge PDF",     description: "Combine multiple PDFs into one", icon: GitMerge,     href: route('tools.merge-pdf')    },
-  { name: "Compress PDF",  description: "Reduce PDF file size",           icon: Minimize2,    href: route('tools.compress-pdf') },
-  { name: "Word to PDF",   description: "Convert .doc/.docx to PDF",      icon: FileText,     href: route('tools.word-to-pdf')  },
-  { name: "Excel to PDF",  description: "Convert spreadsheets to PDF",    icon: Table,        href: route('tools.excel-to-pdf') },
-  { name: "PPT to PDF",    description: "Convert presentations to PDF",   icon: Presentation, href: route('tools.ppt-to-pdf')   },
-  { name: "Split PDF",     description: "Extract pages from PDF",         icon: Scissors,     href: route('tools.split-pdf')    },
-  { name: "PDF to JPG",    description: "Convert PDF to images",          icon: Image,        href: route('tools.pdf-to-jpg')   },
+  { name: "Merge PDF",        description: "Combine multiple PDFs into one",      icon: GitMerge,     href: route('tools.merge-pdf')     },
+  { name: "Compress PDF",     description: "Reduce PDF file size",                icon: Minimize2,    href: route('tools.compress-pdf')  },
+  { name: "Word to PDF",      description: "Convert .doc/.docx to PDF",           icon: FileText,     href: route('tools.word-to-pdf')   },
+  { name: "Excel to PDF",     description: "Convert spreadsheets to PDF",         icon: Table,        href: route('tools.excel-to-pdf')  },
+  { name: "PPT to PDF",       description: "Convert presentations to PDF",        icon: Presentation, href: route('tools.ppt-to-pdf')    },
+  { name: "Split PDF",        description: "Extract pages from PDF",              icon: Scissors,     href: route('tools.split-pdf')     },
+  { name: "PDF to JPG",       description: "Convert PDF to images",               icon: Image,        href: route('tools.pdf-to-jpg')    },
+  { name: "Extract PDF Data", description: "AI extracts invoices & tables to Excel", icon: Zap,       href: route('tools.extract-pdf')   },
 ]
 
 export function Navbar() {

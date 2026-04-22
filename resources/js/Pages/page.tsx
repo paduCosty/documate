@@ -15,6 +15,7 @@ const tools = [
   { name: "PPT to PDF", description: "Convert PowerPoint presentations to PDF with all slides intact.", icon: Presentation, href: "/tools/ppt-to-pdf" },
   { name: "Split PDF", description: "Extract specific pages or split into multiple files. Visual page picker.", icon: Scissors, href: "/tools/split-pdf" },
   { name: "PDF to JPG", description: "Convert each PDF page into a high-quality JPG image.", icon: Image, href: "/tools/pdf-to-jpg" },
+  { name: "Extract PDF Data", description: "AI extracts structured data from invoices and tables. Export to Excel, CSV, or JSON.", icon: Zap, href: "/tools/extract-pdf", badge: "AI" },
 ]
 
 const features = [
@@ -101,7 +102,7 @@ export default function HomePage() {
           <div className="text-center">
             <span className="text-xs font-medium uppercase tracking-widest text-zinc-600">TOOLS</span>
             <h2 className="mb-4 mt-4 text-3xl font-semibold text-white">Everything you need for PDF</h2>
-            <p className="mb-16 text-zinc-500">7 powerful tools. All free to start.</p>
+            <p className="mb-16 text-zinc-500">8 powerful tools. All free to start.</p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -113,6 +114,9 @@ export default function HomePage() {
                       <tool.icon className="h-5 w-5 text-zinc-400" />
                     </div>
                     <span className="font-semibold text-white">{tool.name}</span>
+                    {"badge" in tool && tool.badge && (
+                      <span className="ml-auto rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-400">{tool.badge}</span>
+                    )}
                   </div>
                   <p className="mt-3 text-sm leading-6 text-zinc-500">{tool.description}</p>
                   <span className="mt-4 block text-xs text-zinc-400 transition-colors hover:text-white">Use tool &rarr;</span>

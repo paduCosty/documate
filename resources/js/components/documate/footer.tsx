@@ -3,13 +3,14 @@ import { Link } from '@inertiajs/react';
 import { Logo } from "./logo"
 
 const toolLinks = [
-  { name: "Merge PDF", href: "/tools/merge-pdf" },
-  { name: "Compress PDF", href: "/tools/compress-pdf" },
-  { name: "Word to PDF", href: "/tools/word-to-pdf" },
-  { name: "Excel to PDF", href: "/tools/excel-to-pdf" },
-  { name: "PPT to PDF", href: "/tools/ppt-to-pdf" },
-  { name: "Split PDF", href: "/tools/split-pdf" },
-  { name: "PDF to JPG", href: "/tools/pdf-to-jpg" },
+  { name: "Merge PDF",        href: "/tools/merge-pdf"    },
+  { name: "Compress PDF",     href: "/tools/compress-pdf" },
+  { name: "Word to PDF",      href: "/tools/word-to-pdf"  },
+  { name: "Excel to PDF",     href: "/tools/excel-to-pdf" },
+  { name: "PPT to PDF",       href: "/tools/ppt-to-pdf"   },
+  { name: "Split PDF",        href: "/tools/split-pdf"    },
+  { name: "PDF to JPG",       href: "/tools/pdf-to-jpg"   },
+  { name: "Extract PDF Data", href: "/tools/extract-pdf"  },
 ]
 
 const companyLinks = [

@@ -12,6 +12,8 @@ use App\Http\Controllers\Tools\ToolStatusController;
 use App\Http\Controllers\UserFileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Credits\CreditController;
+use App\Http\Controllers\Extraction\ExtractionController;
+use App\Http\Controllers\Extraction\ExtractionTemplateController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Response;
 use Inertia\Inertia;
@@ -32,6 +34,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => "$base/tools/excel-to-pdf",   'priority' => '0.85', 'freq' => 'monthly'],
         ['loc' => "$base/tools/ppt-to-pdf",     'priority' => '0.85', 'freq' => 'monthly'],
         ['loc' => "$base/tools/pdf-to-jpg",     'priority' => '0.85', 'freq' => 'monthly'],
+        ['loc' => "$base/tools/extract-pdf",    'priority' => '0.85', 'freq' => 'monthly'],
         ['loc' => "$base/pricing",              'priority' => '0.70', 'freq' => 'monthly'],
         ['loc' => "$base/about",                'priority' => '0.50', 'freq' => 'yearly'],
         ['loc' => "$base/faq",                  'priority' => '0.60', 'freq' => 'monthly'],
@@ -271,5 +274,31 @@ Route::middleware('auth')->group(function () {
 // ── Credit packs (one-time purchase) ─────────────────────────────────────
 Route::post('/credits/checkout/{pack}', [CreditController::class, 'checkout'])->name('credits.checkout');
 Route::get('/credits/success', [CreditController::class, 'success'])->name('credits.success');
+
+// ── Extract PDF ───────────────────────────────────────────────────────────────
+// Page + upload: open to guests and authenticated users (same as other tools).
+// Template CRUD: auth-only (templates belong to users).
+// Status/poll/download: open — controller checks ownership via user_id or guest_id.
+Route::get('/tools/extract-pdf', [ExtractionController::class, 'page'])
+    ->name('tools.extract-pdf');
+
+Route::post('/tools/extract-pdf', [ExtractionController::class, 'process'])
+    ->name('tools.extract-pdf.process');
+
+Route::prefix('extraction')->name('extraction.')->group(function () {
+
+    // Custom template management — auth required
+    Route::middleware('auth')->group(function () {
+        Route::get('templates',               [ExtractionTemplateController::class, 'index'])->name('templates.index');
+        Route::post('templates',              [ExtractionTemplateController::class, 'store'])->name('templates.store');
+        Route::put('templates/{template}',    [ExtractionTemplateController::class, 'update'])->name('templates.update');
+        Route::delete('templates/{template}', [ExtractionTemplateController::class, 'destroy'])->name('templates.destroy');
+    });
+
+    // Job lifecycle — open to guests and authenticated users
+    Route::get('{uuid}',          [ExtractionController::class, 'status'])->name('status');
+    Route::get('{uuid}/poll',     [ExtractionController::class, 'poll'])->name('poll');
+    Route::get('{uuid}/download', [ExtractionController::class, 'download'])->name('download');
+});
 
 require __DIR__ . '/auth.php';

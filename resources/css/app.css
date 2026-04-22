@@ -175,3 +175,10 @@
   mask-image: radial-gradient(ellipse at center, transparent 0%, black 100%);
   -webkit-mask-image: radial-gradient(ellipse at center, transparent 0%, black 100%);
 }
+
+/* Shared input base style used in form slide-overs */
+.input-base {
+  @apply w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200
+         placeholder-zinc-600 outline-none transition-colors
+         focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500;
+}

@@ -1,8 +1,5 @@
 import { Head } from '@inertiajs/react'
 
-const BASE_URL = (import.meta.env.VITE_APP_URL as string || 'https://documate.io').replace(/\/$/, '')
-const OG_IMAGE = `${BASE_URL}/og-image.png`
-
 interface SEOHeadProps {
   title: string
   description: string
@@ -10,8 +7,10 @@ interface SEOHeadProps {
 }
 
 export function SEOHead({ title, description, canonical }: SEOHeadProps) {
+  const base = typeof window !== 'undefined' ? window.location.origin : ''
+  const ogImage = `${base}/og-image.png`
   const canonicalUrl = canonical
-    ? canonical.startsWith('http') ? canonical : `${BASE_URL}${canonical}`
+    ? canonical.startsWith('http') ? canonical : `${base}${canonical}`
     : undefined
 
   return (
@@ -22,7 +21,7 @@ export function SEOHead({ title, description, canonical }: SEOHeadProps) {
       <meta head-key="og:description" property="og:description" content={description} />
       <meta head-key="og:type" property="og:type" content="website" />
       <meta head-key="og:site_name" property="og:site_name" content="Documate" />
-      <meta head-key="og:image" property="og:image" content={OG_IMAGE} />
+      <meta head-key="og:image" property="og:image" content={ogImage} />
       <meta head-key="og:image:width" property="og:image:width" content="1200" />
       <meta head-key="og:image:height" property="og:image:height" content="630" />
       {canonicalUrl && <meta head-key="og:url" property="og:url" content={canonicalUrl} />}
@@ -30,7 +29,7 @@ export function SEOHead({ title, description, canonical }: SEOHeadProps) {
       <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
       <meta head-key="twitter:title" name="twitter:title" content={title} />
       <meta head-key="twitter:description" name="twitter:description" content={description} />
-      <meta head-key="twitter:image" name="twitter:image" content={OG_IMAGE} />
+      <meta head-key="twitter:image" name="twitter:image" content={ogImage} />
     </Head>
   )
 }

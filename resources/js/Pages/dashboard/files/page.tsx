@@ -54,8 +54,10 @@ function getToolLabel(tool: string | null): string {
     "excel-to-pdf": "Excel→PDF",
     "ppt_to_pdf": "PPT→PDF",
     "ppt-to-pdf": "PPT→PDF",
-    "pdf_to_jpg": "PDF→JPG",
-    "pdf-to-jpg": "PDF→JPG",
+    "pdf_to_jpg":    "PDF→JPG",
+    "pdf-to-jpg":    "PDF→JPG",
+    "extract_pdf":   "Extract",
+    "extract-pdf":   "Extract",
   }
   return tool ? (map[tool] ?? tool) : "Unknown"
 }
@@ -74,13 +76,15 @@ function getToolColor(tool: string | null): string {
     "excel-to-pdf": "bg-yellow-500/20 text-yellow-400",
     "ppt_to_pdf": "bg-orange-500/20 text-orange-400",
     "ppt-to-pdf": "bg-orange-500/20 text-orange-400",
-    "pdf_to_jpg": "bg-pink-500/20 text-pink-400",
-    "pdf-to-jpg": "bg-pink-500/20 text-pink-400",
+    "pdf_to_jpg":  "bg-pink-500/20 text-pink-400",
+    "pdf-to-jpg":  "bg-pink-500/20 text-pink-400",
+    "extract_pdf": "bg-yellow-500/20 text-yellow-400",
+    "extract-pdf": "bg-yellow-500/20 text-yellow-400",
   }
   return tool ? (map[tool] ?? "bg-zinc-500/20 text-zinc-400") : "bg-zinc-500/20 text-zinc-400"
 }
 
-const toolOptions = ["All Tools", "Merge", "Compress", "Split", "Word→PDF", "Excel→PDF", "PPT→PDF", "PDF→JPG"]
+const toolOptions = ["All Tools", "Merge", "Compress", "Split", "Word→PDF", "Excel→PDF", "PPT→PDF", "PDF→JPG", "Extract"]
 
 export default function FilesPage() {
   const { files } = usePage<{ files: PaginatedFiles }>().props

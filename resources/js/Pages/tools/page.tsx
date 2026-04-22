@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Link } from "@inertiajs/react"
 import { SEOHead } from "@/components/documate/seo-head"
-import { Search, GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image } from "lucide-react"
+import { Search, GitMerge, Minimize2, FileText, Table, Presentation, Scissors, Image, Zap } from "lucide-react"
 import { Navbar } from "@/components/documate/navbar"
 import { Footer } from "@/components/documate/footer"
 import { PageHeader } from "@/components/documate/page-header"
@@ -50,6 +50,15 @@ const tools = [
     href: "/tools/ppt-to-pdf",
     formats: [".ppt", ".pptx"],
     color: "text-orange-400",
+  },
+  {
+    name: "Extract PDF Data",
+    description: "Extract structured data from invoices, tables, and any PDF using AI. Export to Excel, CSV, or JSON.",
+    icon: Zap,
+    href: "/tools/extract-pdf",
+    formats: ["PDF → Excel/CSV/JSON"],
+    color: "text-yellow-400",
+    badge: "AI",
   },
   {
     name: "Split PDF",

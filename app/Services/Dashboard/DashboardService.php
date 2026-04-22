@@ -2,6 +2,7 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\ExtractionJob;
 use App\Models\User;
 use App\Models\UserFile;
 use Illuminate\Support\Collection;
@@ -62,6 +63,16 @@ class DashboardService
                 'icon'    => 'Files',
                 'label'   => 'Files processed',
                 'value'   => $user->files()->count(),
+                'subtext' => 'this month',
+                'color'   => 'text-zinc-600',
+            ],
+            [
+                'icon'    => 'Zap',
+                'label'   => 'AI Extractions',
+                'value'   => ExtractionJob::where('user_id', $user->id)
+                                 ->where('status', 'completed')
+                                 ->where('created_at', '>=', now()->startOfMonth())
+                                 ->count(),
                 'subtext' => 'this month',
                 'color'   => 'text-zinc-600',
             ],
