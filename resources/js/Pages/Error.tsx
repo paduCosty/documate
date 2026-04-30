@@ -1,6 +1,4 @@
 import { Link } from '@inertiajs/react'
-import { Navbar } from '@/components/documate/navbar'
-import { Footer } from '@/components/documate/footer'
 
 const messages: Record<number, { title: string; description: string }> = {
     404: {
@@ -28,20 +26,16 @@ export default function Error({ status }: { status: number }) {
     }
 
     return (
-        <>
-            <Navbar />
-            <main className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-24 text-center">
-                <p className="text-5xl font-bold text-zinc-600">{status}</p>
-                <h1 className="mt-4 text-2xl font-semibold text-white">{title}</h1>
-                <p className="mt-2 text-zinc-400">{description}</p>
-                <Link
-                    href="/"
-                    className="mt-8 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-100"
-                >
-                    Back to home
-                </Link>
-            </main>
-            <Footer />
-        </>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-6 py-24 text-center">
+            <p className="text-5xl font-bold text-zinc-600">{status}</p>
+            <h1 className="mt-4 text-2xl font-semibold text-white">{title}</h1>
+            <p className="mt-2 text-zinc-400">{description}</p>
+            <Link
+                href="/"
+                className="mt-8 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-100"
+            >
+                Back to home
+            </Link>
+        </div>
     )
 }
