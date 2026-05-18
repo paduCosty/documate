@@ -1,58 +1,250 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Documate — PDF Tools SaaS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> **Your PDF toolkit, finally done right.**
+> Merge, compress, convert, and split PDF files in seconds. No signup required for basic tools. Files deleted after 24 hours.
 
-## About Laravel
+**Built solo — from product design to self-hosted production deployment.**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+[![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+![Documate Homepage](screenshots/screenshot-home.png)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## What Is This
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Documate is a production SaaS application for processing PDF files — built entirely by one developer, shipped and self-hosted. It covers the full lifecycle of a SaaS product: user auth, subscription billing, async job processing, AI integration, and cloud deployment.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+The project demonstrates end-to-end ownership across the stack: Laravel backend, React + TypeScript frontend, Stripe billing, queued PDF jobs via Ghostscript/ImageMagick, and an AI-powered data extraction engine that supports multiple LLM providers.
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Tools
 
-```bash
-composer require laravel/boost --dev
+![All PDF Tools](screenshots/screenshot-tools.png)
 
-php artisan boost:install
+| Tool | Description | Formats |
+|------|-------------|---------|
+| **Merge PDF** | Combine multiple PDFs into one, drag to reorder pages | PDF → PDF |
+| **Compress PDF** | Reduce file size with before/after size comparison | PDF → PDF |
+| **Split PDF** | Extract specific pages or split into individual files | PDF → PDF |
+| **Word to PDF** | Convert Word documents with full formatting preserved | .doc, .docx → PDF |
+| **Excel to PDF** | Turn spreadsheets into perfectly formatted PDF documents | .xls, .xlsx → PDF |
+| **PPT to PDF** | Convert presentations with all slides intact | .ppt, .pptx → PDF |
+| **PDF to JPG** | Export each page as a high-quality image | PDF → JPG |
+| **Extract PDF Data** | AI-powered structured data extraction — export to Excel, CSV, or JSON | PDF → Excel / CSV / JSON |
+
+All tools are available to guests (no account required). Authenticated users get higher daily limits and file history.
+
+---
+
+## AI-Powered Data Extraction
+
+![Extract PDF with Templates](screenshots/extract-pdf-with-templates.png)
+
+The extraction tool lets users upload any PDF and extract structured data using AI. It ships with system templates (Generic, Invoice, Table Extractor) and supports user-defined custom templates saved per account.
+
+**Output formats:** Excel (multi-sheet), CSV, JSON
+
+**Supported AI providers** — switchable via config:
+- Claude (Anthropic)
+- Gemini (Google)
+- OpenAI (GPT-4o)
+- Ollama (self-hosted, local models)
+
+The `AiProviderFactory` resolves the configured provider at runtime, making it trivial to swap models or add new ones.
+
+---
+
+## Pricing & Billing
+
+![Pricing Page](screenshots/screenshot-pricing.png)
+
+Billing is handled via **Stripe Checkout** and **Laravel Cashier**.
+
+**Subscription plans:**
+| Plan | Price | Operations/day | File size |
+|------|-------|---------------|-----------|
+| Free | €0 | 3 | 10 MB |
+| Pro | €7/mo | Unlimited | 100 MB |
+| Business | €19/mo | Unlimited | 100 MB + API access |
+
+**One-time credit packs** (no subscription required):
+| Pack | Price | Credits |
+|------|-------|---------|
+| Starter | €5 | 10 ops |
+| Value Pack | €12 | 30 ops |
+| Power Pack | €35 | 100 ops |
+
+Usage limits are enforced at the controller level before dispatching any job. Stripe webhooks handle subscription lifecycle events (created, updated, cancelled).
+
+---
+
+## Architecture
+
+### No Separate REST API
+
+The app uses **Inertia.js** as the bridge between Laravel and React. Controllers return `Inertia::render('PageName', $data)` — no REST API, no separate frontend server. Data flows from the server directly into React props. `axios` is used only for lightweight JSON polling endpoints.
+
+### PDF Job Lifecycle
+
+```
+User uploads file
+    → Controller validates + stores temp file → creates UserFile record
+    → Dispatches queued Job (e.g. MergePdfJob)
+    → Redirects to /status/{uuid}
+
+Status page polls GET /status/{uuid}/poll every 2s (JSON)
+    → Job runs Ghostscript / ImageMagick
+    → Updates UserFile status: pending → processing → completed / failed
+
+On completion → user downloads via GET /tools/download/{uuid}
+Files auto-expire and are deleted after 24 hours.
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Guest Support
 
-## Contributing
+Basic tools work without an account. Guest sessions are tracked via a signed cookie (`guest_id`), allowing job ownership checks on status and download routes without requiring login.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Key Models
 
-## Code of Conduct
+| Model | Purpose |
+|-------|---------|
+| `User` | Auth, Cashier `Billable` trait, `currentPlanLimits()`, `todayUsage()` |
+| `UserFile` | Every file operation — status, paths, expiry, operation type |
+| `DailyUsage` | Per-user daily counters for free-tier enforcement |
+| `ExtractionTemplate` | System and user-defined templates for AI extraction |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Tech Stack
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Laravel 13, PHP 8.3 |
+| **Frontend** | React 18, TypeScript, Vite 8 |
+| **Styling** | Tailwind CSS 3.4, shadcn/ui (Radix UI) |
+| **SPA Bridge** | Inertia.js |
+| **Billing** | Laravel Cashier + Stripe |
+| **PDF Processing** | Ghostscript, ImageMagick, Poppler |
+| **AI Extraction** | Claude, Gemini, OpenAI, Ollama |
+| **Queue** | Laravel Queue (database driver) |
+| **Database** | MySQL 8.0 |
+| **Email** | Brevo (SMTP) |
+| **Error Tracking** | Sentry |
+| **Deployment** | Coolify, Traefik, Docker |
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- Docker + Docker Compose
+- Add `documate.test` to `/etc/hosts` → `127.0.0.1`
+- Copy `.env.example` to `.env` and fill in the required keys (Stripe, AI provider, DB)
+
+### Start the stack
+
+```bash
+# From the repo root (where docker-compose.yml lives)
+docker-compose up
+```
+
+This starts:
+- **PHP/Apache** on port `8083` (proxied via Traefik to `documate.test`)
+- **MySQL 8.0** on port `3310`
+- **Vite HMR** on port `5174`
+
+### Install & run
+
+```bash
+composer install
+npm install
+
+php artisan migrate
+
+# Start Laravel + queue worker + Vite concurrently
+composer run dev
+```
+
+### Useful commands
+
+```bash
+# All PHPUnit tests
+composer run test
+
+# Single test class
+php artisan test --filter=ClassName
+
+# Queue worker
+php artisan queue:work
+
+# Fresh DB with seed data
+php artisan migrate:fresh --seed
+
+# Production build
+npm run build
+```
+
+---
+
+## Project Structure
+
+```
+documate/
+├── app/
+│   ├── Http/Controllers/
+│   │   ├── Tools/              # MergePdf, CompressPdf, SplitPdf, OfficeToPdf, PdfToJpg
+│   │   ├── Extraction/         # AI extraction controller + template CRUD
+│   │   ├── Credits/            # One-time credit pack checkout
+│   │   └── SubscriptionController.php
+│   ├── Jobs/                   # MergePdfJob, CompressPdfJob, SplitPdfJob, ...
+│   ├── Models/                 # User, UserFile, DailyUsage, ExtractionTemplate
+│   └── Services/
+│       ├── Ai/                 # AiProviderFactory + Claude/Gemini/OpenAI/Ollama providers
+│       ├── Pdf/                # PDF processing services
+│       └── Subscription/       # Plan limits, billing logic
+├── resources/js/
+│   ├── Pages/
+│   │   ├── tools/              # merge-pdf, compress-pdf, split-pdf, extract-pdf, ...
+│   │   └── dashboard/          # usage stats, file history, billing, settings
+│   └── components/
+│       ├── ui/                 # shadcn/ui primitives
+│       └── documate/           # App-specific components
+├── routes/web.php
+└── screenshots/                # README assets
+```
+
+---
+
+## Deployment
+
+The production instance runs on a **DigitalOcean VPS** managed by **Coolify**, with **Traefik** as the reverse proxy (HTTPS termination, routing).
+
+- Zero-downtime deploys via Coolify's rolling deployment
+- Full environment isolation (separate containers per service)
+- Transactional email via **Brevo SMTP**
+- Error tracking and alerting via **Sentry**
+
+---
+
+## About
+
+Built by **Constantin Paduraru** — Full-Stack Developer (Laravel · React · TypeScript).
+
+- GitHub: [github.com/paduCosty](https://github.com/paduCosty)
+- LinkedIn: [linkedin.com/in/constantin-paduraru](https://linkedin.com/in/constantin-paduraru)
+- Email: padu.costi7@gmail.com
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
