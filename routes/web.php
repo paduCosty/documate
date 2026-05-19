@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
@@ -19,6 +20,16 @@ use Illuminate\Support\Facades\Response;
 use Inertia\Inertia;
 
 
+
+// ── Gate routes — always public, no gate middleware ───────────────────────────
+Route::get('/gate',                 [GateController::class, 'show'])->name('gate');
+Route::post('/gate/password',       [GateController::class, 'enterPassword'])->name('gate.password');
+Route::post('/gate/request',        [GateController::class, 'requestAccess'])->name('gate.request');
+Route::get('/gate/approve/{token}', [GateController::class, 'approve'])->name('gate.approve');
+Route::get('/gate/access/{token}',  [GateController::class, 'grantAccess'])->name('gate.access');
+
+// ── All other routes — behind the gate ────────────────────────────────────────
+Route::middleware('gate')->group(function () {
 
 Route::get('/sitemap.xml', function () {
     $base = rtrim(config('app.url'), '/');
@@ -302,3 +313,5 @@ Route::prefix('extraction')->name('extraction.')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
+}); // end gate middleware group
